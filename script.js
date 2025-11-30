@@ -2,13 +2,13 @@
 // ۱. تنظیمات و اتصال Firebase 🔑
 // ===================================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyAyGhDkqAwyCv-Sqa8z4BbkNa_SrpXv4Zk",
-  authDomain: "mika-b7f7c.firebaseapp.com",
-  databaseURL: "https://mika-b7f7c-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "mika-b7f7c",
-  storageBucket: "mika-b7f7c.firebasestorage.app",
-  messagingSenderId: "524357269646",
-  appId: "1:524357269646:web:89548b32616ebcbe4a31df"
+  apiKey: "AIzaSyAyGhDkqAwyCv-Sqa8z4BbkNa_SrpXv4Zk",
+  authDomain: "mika-b7f7c.firebaseapp.com",
+  databaseURL: "https://mika-b7f7c-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mika-b7f7c",
+  storageBucket: "mika-b7f7c.firebasestorage.app",
+  messagingSenderId: "524357269646",
+  appId: "1:524357269646:web:89548b32616ebcbe4a31df"
 };
 
 // INITIALIZE APP
@@ -24,31 +24,33 @@ const authContainer = document.getElementById('auth-container');
 const chatContainer = document.getElementById('chat-container');
 
 // عناصر احراز هویت
-const usernameAuthInput = document.getElementById('auth-username'); // 👈 ارجاع به فیلد نام کاربری در HTML
+const usernameAuthInput = document.getElementById('auth-username'); 
 const passwordInput = document.getElementById('auth-password');
 const loginButton = document.getElementById('login-button');
 const registerButton = document.getElementById('register-button');
 
 // عناصر چت
 const messageInput = document.getElementById('message-input');
-const usernameInput = document.getElementById('username'); // برای پنهان کردن (دیگر استفاده نمی‌شود)
+const usernameInput = document.getElementById('username'); 
 const sendButton = document.getElementById('send-button');
 const messagesContainer = document.getElementById('messages');
 const headerTitle = document.getElementById('header-title');
 
 // ===================================================================
-// ۳. توابع احراز هویت و ذخیره پروفایل 🆔
+// ۳. توابع احراز هویت و ذخیره پروفایل (با قابلیت نمایش خطا) 🆔
 // ===================================================================
 
 // **ورود کاربر (با نام کاربری و پسورد)**
 function loginUser() {
     const username = usernameAuthInput.value.trim();
     const password = passwordInput.value;
-    const fakeEmail = `${username}@yourchatapp.com`; // ساخت ایمیل جعلی
+    const fakeEmail = `${username}@yourchatapp.com`;
     
     auth.signInWithEmailAndPassword(fakeEmail, password)
         .catch(error => {
+            // 🚨 اینجا خطا را به صورت پاپ‌آپ نمایش می‌دهیم:
             alert("خطا در ورود: " + error.message);
+            console.error("Login Error:", error);
         });
 }
 
@@ -83,14 +85,16 @@ function registerUser() {
                         username: username,
                     });
                     
-                    return Promise.all([p1, p2]); // اجرای موازی
+                    return Promise.all([p1, p2]);
                 });
         })
         .then(() => {
             alert(`ثبت نام ${username} با موفقیت انجام شد.`);
         })
         .catch(error => {
+            // 🚨 اینجا خطا را به صورت پاپ‌آپ نمایش می‌دهیم:
             alert("خطا در ثبت نام: " + error.message);
+            console.error("Registration Error:", error);
         });
 }
 
@@ -103,7 +107,6 @@ registerButton.addEventListener('click', registerUser);
 
 auth.onAuthStateChanged(user => {
     if (user) {
-        // کاربر وارد شده است، نام کاربری ذخیره شده را لود می‌کنیم
         database.ref('users/' + user.uid).once('value')
             .then(snapshot => {
                 const userData = snapshot.val();
@@ -113,19 +116,16 @@ auth.onAuthStateChanged(user => {
                     username = userData.username;
                 }
                 
-                // نمایش اطلاعات و چت
                 authContainer.style.display = 'none';
                 chatContainer.style.display = 'flex';
                 headerTitle.textContent = "چت گروهی: " + username; 
                 
-                startChatListeners(username); // شروع شنیدن پیام‌ها
+                startChatListeners(username); 
             });
 
-        // حذف ورودی نام کاربری قدیمی
         if (usernameInput) usernameInput.style.display = 'none'; 
 
     } else {
-        // کاربر وارد نشده است
         authContainer.style.display = 'flex';
         chatContainer.style.display = 'none';
     }
@@ -144,7 +144,6 @@ function sendMessage() {
         return;
     }
 
-    // نام کاربری را از هدر لود می‌کنیم (که توسط auth.onAuthStateChanged تنظیم شده)
     const username = headerTitle.textContent.replace("چت گروهی: ", ""); 
     
     const newMessage = {
@@ -178,7 +177,6 @@ function startChatListeners(currentUserUsername) {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message');
         
-        // تشخیص پیام خودی با مقایسه نام کاربری
         if (messageData.name === currentUserUsername) {
             messageDiv.classList.add('mine'); 
         } else {
