@@ -37,18 +37,18 @@ const messagesContainer = document.getElementById('messages');
 const headerTitle = document.getElementById('header-title');
 
 // ===================================================================
-// ۳. توابع احراز هویت و ذخیره پروفایل (با قابلیت نمایش خطا) 🆔
+// ۳. توابع احراز هویت و ذخیره پروفایل (با تست و نمایش خطا) 🆔
 // ===================================================================
 
 // **ورود کاربر (با نام کاربری و پسورد)**
 function loginUser() {
+    alert('شروع تابع ورود'); // 👈 تست اجرای کد
     const username = usernameAuthInput.value.trim();
     const password = passwordInput.value;
     const fakeEmail = `${username}@yourchatapp.com`;
     
     auth.signInWithEmailAndPassword(fakeEmail, password)
         .catch(error => {
-            // 🚨 اینجا خطا را به صورت پاپ‌آپ نمایش می‌دهیم:
             alert("خطا در ورود: " + error.message);
             console.error("Login Error:", error);
         });
@@ -56,6 +56,7 @@ function loginUser() {
 
 // **ثبت نام کاربر (با نام کاربری یکتا)**
 function registerUser() {
+    alert('شروع تابع ثبت نام'); // 👈 تست اجرای کد
     const username = usernameAuthInput.value.trim();
     const password = passwordInput.value;
     
@@ -69,7 +70,8 @@ function registerUser() {
         .then(snapshot => {
             if (snapshot.exists()) {
                 alert('این نام کاربری قبلاً استفاده شده است.');
-                return;
+                // ⚠️ مهم: اگر نام کاربری تکراری بود، باید اجرای تابع اینجا متوقف شود.
+                return Promise.reject(new Error('Username already exists')); 
             }
             
             const fakeEmail = `${username}@yourchatapp.com`;
@@ -92,9 +94,11 @@ function registerUser() {
             alert(`ثبت نام ${username} با موفقیت انجام شد.`);
         })
         .catch(error => {
-            // 🚨 اینجا خطا را به صورت پاپ‌آپ نمایش می‌دهیم:
-            alert("خطا در ثبت نام: " + error.message);
-            console.error("Registration Error:", error);
+            // نمایش خطاهای Firebase و خطای تکراری بودن نام کاربری
+            if (error.message !== 'Username already exists') {
+                alert("خطا در ثبت نام: " + error.message);
+                console.error("Registration Error:", error);
+            }
         });
 }
 
