@@ -1,0 +1,141 @@
+/* تنظیمات کلی صفحه */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #E6EBE0; /* رنگ زمینه روشن تلگرام */
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+    direction: rtl; 
+    min-height: 100vh;
+}
+
+/* کانتینر اصلی چت */
+#chat-container {
+    width: 95%;
+    max-width: 700px;
+    background-color: #FAFAFA; /* پس‌زمینه سفید چت */
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 90vh; 
+}
+
+h1 {
+    text-align: center;
+    color: #515151;
+    background-color: #F0F0F0;
+    padding: 15px;
+    margin: 0;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #E0E0E0;
+}
+
+/* منطقه نمایش پیام‌ها */
+#messages {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto; 
+    /* طراحی اسکرول بار شبیه تلگرام */
+    scrollbar-width: thin; 
+    scrollbar-color: #0088cc #FAFAFA;
+}
+
+#messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+#messages::-webkit-scrollbar-thumb {
+    background-color: #0088cc;
+    border-radius: 10px;
+}
+
+/* سبک پیام‌ها (عمومی) */
+.message {
+    padding: 10px 14px;
+    border-radius: 18px; /* گوشه‌های گرد تلگرام */
+    margin-bottom: 10px;
+    max-width: 80%;
+    word-wrap: break-word;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    position: relative;
+    clear: both; /* مهم برای چیدمان راست و چپ */
+}
+
+/* پیام‌های ارسالی (شما) */
+.message:not(.other) {
+    background-color: #DDEEFE; /* آبی روشن تلگرام */
+    color: #333;
+    float: right;
+    border-bottom-left-radius: 5px; /* گوشه پایینی تیزتر */
+}
+
+/* پیام‌های دریافتی (دوستان) */
+.message.other {
+    background-color: #FFFFFF; /* سفید یا کرم روشن */
+    border: 1px solid #E0E0E0;
+    color: #333;
+    float: left;
+    border-bottom-right-radius: 5px; /* گوشه پایینی تیزتر */
+}
+
+/* نام فرستنده */
+.message-sender {
+    font-weight: bold;
+    color: #0088cc; /* آبی تیره تلگرام */
+    margin-bottom: 4px;
+    display: block;
+    font-size: 0.85rem;
+}
+
+/* منطقه ورودی پیام و نام کاربری */
+#input-area {
+    display: flex;
+    padding: 10px;
+    background-color: #F9F9F9;
+    border-top: 1px solid #E0E0E0;
+    align-items: center;
+}
+
+#username, #message-input {
+    padding: 10px 15px;
+    border: 1px solid #CCC;
+    border-radius: 20px; /* ورودی‌های گرد */
+    margin: 0 5px;
+    transition: border-color 0.3s;
+}
+
+#username {
+    flex-grow: 0;
+    width: 100px;
+    text-align: center;
+}
+
+#message-input {
+    flex-grow: 1;
+}
+
+#username:focus, #message-input:focus {
+    border-color: #0088cc;
+    outline: none;
+}
+
+/* دکمه ارسال */
+#send-button {
+    background-color: #0088cc; 
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px; /* دکمه گرد */
+    cursor: pointer;
+    font-weight: bold;
+    min-width: 70px;
+    transition: background-color 0.3s;
+}
+
+#send-button:hover {
+    background-color: #0077b3;
+}
