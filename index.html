@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پیام‌رسان حرفه‌ای (سه فایلی)</title>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="chat-container">
+        <h1>چت جدا شده (کنترل آسان‌تر)</h1>
+        
+        <div id="messages">
+            </div>
+
+        <div id="input-area">
+            <input type="text" id="username" placeholder="نام خود را وارد کنید..." maxlength="15">
+            <input type="text" id="message-input" placeholder="پیام شما...">
+            <button id="send-button">ارسال</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
