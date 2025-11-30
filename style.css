@@ -1,141 +1,100 @@
-/* تنظیمات کلی صفحه */
+/* ================================================= */
+/* استایل‌های سراسری و مرکز قرارگیری فرم */
+/* ================================================= */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #E6EBE0; /* رنگ زمینه روشن تلگرام */
-    margin: 0;
+    background-color: #f0f2f5; /* پس‌زمینه روشن و آرام */
     display: flex;
-    justify-content: center;
-    padding-top: 20px;
+    justify-content: center; /* مرکز قرار دادن افقی */
+    align-items: center; /* مرکز قرار دادن عمودی */
+    min-height: 100vh; /* کل ارتفاع صفحه */
+    margin: 0;
+    font-family: 'Tahoma', sans-serif;
     direction: rtl; 
-    min-height: 100vh;
 }
 
-/* کانتینر اصلی چت */
-#chat-container {
-    width: 95%;
-    max-width: 700px;
-    background-color: #FAFAFA; /* پس‌زمینه سفید چت */
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-    display: flex;
+/* ================================================= */
+/* ۱. استایل فرم ورود/ثبت نام (Card UI) */
+/* ================================================= */
+#auth-container {
+    display: flex; 
     flex-direction: column;
-    overflow: hidden;
-    height: 90vh; 
-}
-
-h1 {
+    width: 90%;
+    max-width: 400px; /* حداکثر عرض فرم در دسکتاپ */
+    padding: 30px;
+    background-color: white; /* پس‌زمینه سفید برای برجسته شدن */
+    border-radius: 12px; /* گوشه‌های گردتر */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* سایه واضح و جذاب */
+    gap: 15px; /* افزایش فاصله بین عناصر */
     text-align: center;
-    color: #515151;
-    background-color: #F0F0F0;
-    padding: 15px;
-    margin: 0;
-    font-size: 1.2rem;
-    border-bottom: 1px solid #E0E0E0;
+    margin: 20px auto; /* اطمینان از قرارگیری در مرکز */
 }
 
-/* منطقه نمایش پیام‌ها */
-#messages {
-    flex-grow: 1;
-    padding: 15px;
-    overflow-y: auto; 
-    /* طراحی اسکرول بار شبیه تلگرام */
-    scrollbar-width: thin; 
-    scrollbar-color: #0088cc #FAFAFA;
+#auth-container h1 {
+    color: #007bff; /* رنگ آبی برای عنوان */
+    margin-bottom: 20px;
+    font-size: 1.5rem;
 }
 
-#messages::-webkit-scrollbar {
-    width: 6px;
+/* ================================================= */
+/* ۲. استایل ورودی‌ها */
+/* ================================================= */
+/* توجه: ما از IDهای #auth-username و #auth-password استفاده می‌کنیم */
+#auth-username, #auth-password {
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    font-size: 1rem;
+    text-align: right;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-#messages::-webkit-scrollbar-thumb {
-    background-color: #0088cc;
-    border-radius: 10px;
-}
-
-/* سبک پیام‌ها (عمومی) */
-.message {
-    padding: 10px 14px;
-    border-radius: 18px; /* گوشه‌های گرد تلگرام */
-    margin-bottom: 10px;
-    max-width: 80%;
-    word-wrap: break-word;
-    font-size: 0.95rem;
-    line-height: 1.4;
-    position: relative;
-    clear: both; /* مهم برای چیدمان راست و چپ */
-}
-
-/* پیام‌های ارسالی (شما) */
-.message:not(.other) {
-    background-color: #DDEEFE; /* آبی روشن تلگرام */
-    color: #333;
-    float: right;
-    border-bottom-left-radius: 5px; /* گوشه پایینی تیزتر */
-}
-
-/* پیام‌های دریافتی (دوستان) */
-.message.other {
-    background-color: #FFFFFF; /* سفید یا کرم روشن */
-    border: 1px solid #E0E0E0;
-    color: #333;
-    float: left;
-    border-bottom-right-radius: 5px; /* گوشه پایینی تیزتر */
-}
-
-/* نام فرستنده */
-.message-sender {
-    font-weight: bold;
-    color: #0088cc; /* آبی تیره تلگرام */
-    margin-bottom: 4px;
-    display: block;
-    font-size: 0.85rem;
-}
-
-/* منطقه ورودی پیام و نام کاربری */
-#input-area {
-    display: flex;
-    padding: 10px;
-    background-color: #F9F9F9;
-    border-top: 1px solid #E0E0E0;
-    align-items: center;
-}
-
-#username, #message-input {
-    padding: 10px 15px;
-    border: 1px solid #CCC;
-    border-radius: 20px; /* ورودی‌های گرد */
-    margin: 0 5px;
-    transition: border-color 0.3s;
-}
-
-#username {
-    flex-grow: 0;
-    width: 100px;
-    text-align: center;
-}
-
-#message-input {
-    flex-grow: 1;
-}
-
-#username:focus, #message-input:focus {
-    border-color: #0088cc;
+#auth-username:focus, #auth-password:focus {
+    border-color: #0088cc; /* تغییر رنگ هنگام تمرکز */
+    box-shadow: 0 0 0 0.15rem rgba(0, 136, 204, 0.25); /* ایجاد حلقه تمرکز */
     outline: none;
 }
 
-/* دکمه ارسال */
-#send-button {
-    background-color: #0088cc; 
+/* ================================================= */
+/* ۳. استایل دکمه‌ها */
+/* ================================================= */
+#auth-container button {
+    padding: 12px;
+    border-radius: 8px;
     color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 20px; /* دکمه گرد */
     cursor: pointer;
     font-weight: bold;
-    min-width: 70px;
-    transition: background-color 0.3s;
+    border: none;
+    transition: background-color 0.3s, transform 0.1s;
 }
 
-#send-button:hover {
-    background-color: #0077b3;
+#login-button {
+    background-color: #0088cc; /* آبی تلگرام */
+}
+
+#register-button {
+    background-color: #28a745; /* سبز برای ثبت نام */
+}
+
+#auth-container button:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px); /* افکت کوچک هنگام هاور */
+}
+
+/* ================================================= */
+/* ۴. پنهان کردن چت در ابتدا */
+/* ================================================= */
+#chat-container {
+    display: none; 
+    /* ... بقیه استایل‌های قبلی چت اگر وجود دارند ... */
+}
+
+/* ================================================= */
+/* ۵. واکنش‌گرا (موبایل) */
+/* ================================================= */
+@media (max-width: 600px) {
+    #auth-container {
+        width: 90%;
+        margin: 20px auto;
+        padding: 20px;
+    }
 }
