@@ -3,8 +3,8 @@
 
 // ** 🚨 مهم **: این تنظیمات را باید با تنظیمات واقعی پروژه Firebase خود جایگزین کنید.
 const firebaseConfig = {
-    // تنظیمات ساختگی قبلی شما:
-    apiKey: "AIzaSyAyGhDkqAwyCv-Sqa8z4BbkNa_SrpXv4Zk",
+    // تنظیمات ساختگی
+    apiKey: "AIzaSyAyGhDkqAwyCv-Sqa8z4BbkNa_Srpv4Zk",
     authDomain: "mika-b7f7c.firebaseapp.com",
     databaseURL: "https://mika-b7f7c-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "mika-b7f7c",
@@ -207,9 +207,11 @@ auth.onAuthStateChanged(user => {
         // --- وضعیت: کاربر وارد شده ---
         
         // ۱. مخفی کردن کانتینر لاگین و نمایش کانتینر چت
-        authContainer.classList.add('hidden');
+        // حذف flex و اضافه کردن hidden به authContainer
         authContainer.classList.remove('flex');
+        authContainer.classList.add('hidden');
 
+        // حذف hidden و اضافه کردن flex به chatContainer
         chatContainer.classList.remove('hidden');
         chatContainer.classList.add('flex'); // فعال کردن فلکس برای نمایش عمودی
         
@@ -240,11 +242,13 @@ auth.onAuthStateChanged(user => {
         // --- وضعیت: کاربر خارج شده ---
         
         // ۱. نمایش کانتینر لاگین و مخفی کردن کانتینر چت
+        // حذف hidden و اضافه کردن flex به authContainer
         authContainer.classList.remove('hidden');
         authContainer.classList.add('flex'); // فعال کردن فلکس برای چیدمان
         
-        chatContainer.classList.add('hidden');
+        // حذف flex و اضافه کردن hidden به chatContainer
         chatContainer.classList.remove('flex');
+        chatContainer.classList.add('hidden');
 
         // ۲. اطمینان از بسته بودن پنل پروفایل
         profilePanel.classList.remove('translate-x-0');
@@ -338,7 +342,7 @@ function startChatListeners() {
 }
 
 
-// --- ۷. Event Listeners ---\
+// --- ۷. Event Listeners ---
 loginButton.addEventListener('click', loginUser);
 registerButton.addEventListener('click', registerUser);
 logoutSwitchButton.addEventListener('click', logoutUser); 
@@ -356,21 +360,25 @@ messageInput.addEventListener('keypress', (e) => {
 });
 
 
-// --- ۸. راه‌اندازی تم Dark Mode در شروع ---
-// چک کردن localStorage برای Dark Mode در هنگام لود شدن
+// --- ۸. راه‌اندازی تم Dark Mode و وضعیت اولیه در شروع ---
 window.onload = function() {
     const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
     setDarkMode(isDark);
     
-    // 💡 نکته: منطق onAuthStateChanged باید حالت نمایش اولیه را تنظیم کند،
-    // اما برای اطمینان از این که در هنگام لود شدن صفحه، حداقل یک وضعیت نمایش داده شود:
+    // بررسی وضعیت احراز هویت در هنگام لود شدن صفحه
+    // اگر کاربر لاگین کرده باشد، onAuthStateChanged کار می‌کند.
+    // اما برای حالت اولیه، باید حالت لاگین را پیش‌فرض قرار دهیم.
     if (!auth.currentUser) {
+        // کاربر لاگین نکرده است: نمایش صفحه ورود
         authContainer.classList.add('flex');
         authContainer.classList.remove('hidden');
         chatContainer.classList.add('hidden');
+        chatContainer.classList.remove('flex');
     } else {
+        // کاربر لاگین کرده است: نمایش صفحه چت
+        authContainer.classList.add('hidden');
+        authContainer.classList.remove('flex');
         chatContainer.classList.add('flex');
         chatContainer.classList.remove('hidden');
-        authContainer.classList.add('hidden');
     }
 };
