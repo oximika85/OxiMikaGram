@@ -3,40 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پیام‌رسان با ورود</title>
-    
+    <title>پیام‌رسان بلادرنگ</title>
+    <!-- لود کردن Tailwind CSS برای کلاس‌های کمکی -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- لینک کردن فایل استایل سفارشی -->
     <link rel="stylesheet" href="style.css">
-</head>
-<body>
     
-   <div id="auth-container">
-    <h1>ورود به پیام‌رسان</h1>
-    <input type="text" id="auth-username" placeholder="نام کاربری" required> 
-    <input type="password" id="auth-password" placeholder="گذرواژه" required>
-    <button id="login-button">ورود</button>
-    <button id="register-button">ثبت نام</button>
-</div>
+</head>
+<body class="flex items-center justify-center min-h-screen">
 
-    <div id="chat-container">
-        <h1 id="header-title">چت گروهی</h1> 
-        
-        <div id="messages">
+    <!-- کانتینر اصلی اپلیکیشن -->
+    <div id="app-container">
+
+        <!-- صفحه احراز هویت (ورود/ثبت نام) -->
+        <div id="auth-container" class="h-full hidden flex-col justify-center items-center p-8">
+            <h1 class="text-3xl font-extrabold mb-6" style="color: var(--chat-header-bg);">ورود به پیام‌رسان 👋</h1>
+            <input type="text" id="auth-username" placeholder="نام کاربری (حداقل ۳ کاراکتر)" required maxlength="20" class="mb-4">
+            <input type="password" id="auth-password" placeholder="گذرواژه (حداقل ۶ کاراکتر)" required maxlength="20" class="mb-6">
+            <button id="login-button" class="mb-3">ورود</button>
+            <button id="register-button">ثبت نام</button>
+            <p id="user-id-display" class="mt-4 text-xs text-gray-400 text-center select-all hidden"></p>
+        </div>
+
+        <!-- صفحه چت -->
+        <div id="chat-container" class="flex flex-col h-full hidden">
+            
+            <!-- هدر چت -->
+            <div class="chat-header">
+                <div class="header-controls">
+                    <button id="dark-mode-toggle" title="تغییر حالت">🌙</button>
+                    <button id="profile-toggle" title="پروفایل و تنظیمات">👤</button>
+                </div>
+                <span id="header-title">چت گروهی</span>
+                <div class="w-8"></div>
+            </div>
+            
+            <!-- ناحیه پیام‌ها -->
+            <div id="messages" class="flex-grow p-4 overflow-y-auto flex flex-col">
+                <!-- پیام‌ها در اینجا اضافه خواهند شد -->
             </div>
 
-        <div id="input-area">
-            <input type="text" id="username" placeholder="نام شما (پنهان)" maxlength="15" style="display: none;">
-            <input type="text" id="message-input" placeholder="پیام شما...">
-            <button id="send-button">ارسال</button>
+            <!-- ناحیه ورودی پیام -->
+            <div id="input-area" class="p-4 border-t flex items-center gap-2">
+                <input type="text" id="message-input" placeholder="پیام شما..." 
+                       class="flex-grow">
+                <button id="send-button">
+                </button>
+            </div>
         </div>
+
+        <!-- پنل پروفایل و تنظیمات (به طور پیش‌فرض مخفی و خارج از دید) -->
+        <div id="profile-panel" class="hidden">
+            <button class="profile-close-btn" id="profile-close-button" title="بستن پنل">✕</button>
+            
+            <h2 class="text-xl font-bold mt-4 mb-5 text-center">مشخصات کاربری</h2>
+            
+            <div class="profile-info">
+                <p>نام کاربری: <span id="profile-username">...</span></p>
+            </div>
+            
+            <div class="profile-info">
+                <p>شناسه کاربری (UID): <span id="profile-uid" class="select-all">...</span></p>
+                <p class="text-xs mt-2 opacity-70">این شناسه برای احراز هویت شما در دیتابیس استفاده می‌شود.</p>
+            </div>
+            
+            <div class="profile-info">
+                <p>مدیریت اکانت:</p>
+                <p class="text-sm mt-1 opacity-80">با خروج، می‌توانید با اکانت دیگری وارد شوید یا اکانت جدید بسازید.</p>
+            </div>
+
+            <button id="logout-switch-button">خروج و تعویض اکانت</button>
+        </div>
+        
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
-    <script src="script.js"></script>
-
+    <!-- لود کردن فایل منطق برنامه (type="module" الزامی است) -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
