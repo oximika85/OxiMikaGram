@@ -17,19 +17,23 @@
     <div id="app-container" class="w-full max-w-lg mx-auto bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
 
         <!-- صفحه احراز هویت (ورود/ثبت نام) -->
-        <!-- در اینجا کلاس flex یا hidden اضافه نمی‌کنیم. جاوااسکریپت این کار را انجام می‌دهد. -->
-        <div id="auth-container" class="h-full flex-col justify-center items-center p-8">
+        <!-- شروع با کلاس hidden و flex، جاوااسکریپت این را سریعاً Override می‌کند -->
+        <div id="auth-container" class="h-full flex-col justify-center items-center p-8 hidden">
             <h1 class="text-3xl font-extrabold mb-6" style="color: var(--chat-header-bg);">ورود به پیام‌رسان 👋</h1>
+            <!-- فرم ورود/ثبت نام -->
             <input type="text" id="auth-username" placeholder="نام کاربری (حداقل ۳ کاراکتر)" required maxlength="20" class="mb-4">
             <input type="password" id="auth-password" placeholder="گذرواژه (حداقل ۶ کاراکتر)" required maxlength="20" class="mb-6">
             <button id="login-button" class="mb-3">ورود</button>
             <button id="register-button">ثبت نام</button>
             <p id="auth-message" class="text-sm mt-4 text-red-500 hidden"></p>
+            <p class="text-xs mt-6 text-gray-500 dark:text-gray-400 text-center">
+                جهت شروع، ابتدا یک نام کاربری و رمز عبور بسازید.
+            </p>
         </div>
 
         <!-- کانتینر چت -->
-        <!-- در اینجا کلاس flex یا hidden اضافه نمی‌کنیم. جاوااسکریپت این کار را انجام می‌دهد. -->
-        <div id="chat-container" class="h-full flex-col">
+        <!-- شروع با کلاس hidden، جاوااسکریپت این را سریعاً Override می‌کند -->
+        <div id="chat-container" class="h-full flex-col hidden">
             <!-- هدر چت -->
             <div id="header-title" class="flex items-center justify-between p-4 flex-shrink-0" style="background-color: var(--chat-header-bg); color: white;">
                 <h1 class="text-xl font-bold">گفتگوی عمومی</h1>
@@ -87,13 +91,8 @@
         </div>
     </div>
     
-    <!-- کتابخانه‌های Firebase V8 (دسترسی سراسری) باید قبل از script.js لود شوند -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
-    <!-- فایل جاوااسکریپت اصلی (باید آخرین مورد باشد و از import استفاده نکند) -->
-    <script src="script.js"></script>
+    <!-- فایل جاوااسکریپت اصلی (با type="module" برای Firebase V11+) -->
+    <script type="module" src="script.js"></script>
 
 </body>
 </html>
