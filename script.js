@@ -21,20 +21,31 @@ import {
 // --- ۲. تنظیمات و متغیرهای سراسری ---
 
 // ** 🚨 مهم: لطفاً تمام مقادیر زیر را با تنظیمات واقعی پروژه Firebase خود جایگزین کنید. **
-// اگر از مقادیر پیش‌فرض استفاده کنید، برنامه خطا خواهد داد.
 const firebaseConfig = {
-  apiKey: "AIzaSyAyGhDkqAwyCv-Sqa8z4BbkNa_SrpXv4Zk",
-  authDomain: "mika-b7f7c.firebaseapp.com",
-  databaseURL: "https://mika-b7f7c-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "mika-b7f7c",
-  storageBucket: "mika-b7f7c.firebasestorage.app",
-  messagingSenderId: "524357269646",
-  appId: "1:524357269646:web:89548b32616ebcbe4a31df"
+    apiKey: "YOUR_API_KEY", 
+    authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com",
+    // 🛑 شما باید مقدار زیر را با آدرس کامل Realtime Database خود جایگزین کنید.
+    // مثال صحیح: https://my-chat-app-12345-default-rtdb.asia-southeast1.firebasedatabase.app
+    databaseURL: "YOUR_DATABASE_URL_STARTING_WITH_HTTPS", 
+    projectId: "YOUR_PROJECT_ID",
+    // سایر فیلدها اختیاری هستند.
 };
+
+// ** 🛑 بررسی اعتبار سنجی URL دیتابیس (کمکی) 🛑 **
+if (firebaseConfig.databaseURL === "YOUR_DATABASE_URL_STARTING_WITH_HTTPS" || !firebaseConfig.databaseURL.startsWith('http')) {
+    console.error("==========================================================================================");
+    console.error("🔥 خطای راه‌اندازی Firebase: مقدار databaseURL در script.js نامعتبر است!");
+    console.error("🔥 لطفاً 'YOUR_DATABASE_URL_STARTING_WITH_HTTPS' را با آدرس کامل RTDB خود جایگزین کنید.");
+    console.error("🔥 این آدرس باید با 'https://' شروع شود و از کنسول Firebase کپی شده باشد.");
+    console.error("==========================================================================================");
+    // اگر مقدار نامعتبر باشد، از اجرای برنامه جلوگیری نمی‌کند اما یک پیام اخطار شدید نمایش می‌دهد.
+    // خطای اصلی همچنان از خود Firebase SDK صادر خواهد شد.
+}
+
 
 // ** راه‌اندازی Firebase **
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app); // 🛑 خط ۳۵: خطا در این قسمت برطرف شد، اما همچنان نیازمند URL معتبر است.
+const db = getDatabase(app); 
 const auth = getAuth(app);
 
 let currentUserUsername = null;
@@ -130,7 +141,7 @@ function setDarkMode(isDark) {
 }
 
 /**
- * 🛑 فیکس: تعریف تابع toggleDarkMode که قبلاً تعریف نشده بود 🛑
+ * سوئیچ بین حالت تیره و روشن
  */
 function toggleDarkMode() {
     const isCurrentlyDark = document.documentElement.classList.contains('dark');
@@ -161,6 +172,7 @@ function toggleProfilePanel() {
 function loginUser() {
     const username = usernameAuthInput.value.trim();
     const password = passwordInput.value;
+    // Firebase Auth از ایمیل استفاده می‌کند، ما نام کاربری را به یک ایمیل ساختگی تبدیل می‌کنیم
     const fakeEmail = `${username}@yourchatapp.com`;
     
     signInWithEmailAndPassword(auth, fakeEmail, password)
@@ -189,6 +201,7 @@ function registerUser() {
         .then(snapshot => {
             if (snapshot.exists()) {
                 customAlert('این نام کاربری قبلاً استفاده شده است.');
+                // پرتاب خطا برای جلوگیری از اجرای ادامه Promise
                 throw new Error('Username already exists'); 
             }
             
@@ -232,9 +245,9 @@ function handleAuthError(error) {
         message = "ایمیل (نام کاربری) قبلاً ثبت شده است.";
     } else if (error.code === 'auth/weak-password') {
         message = "گذرواژه ضعیف است. حداقل ۶ کاراکتر استفاده کنید.";
-    } else if (error.message.includes("API key not valid") || error.message.includes("databaseURL")) {
-        // این خطا فقط در صورتی نمایش داده می‌شود که Firebase هنوز خطا را نداده باشد، اما برای کمک به کاربر نگه داشته می‌شود.
-        message = "خطا: کلید API یا URL دیتابیس در تنظیمات Firebase نامعتبر است. لطفاً فایل script.js را بررسی و ویرایش کنید.";
+    } else if (error.code === 'app/invalid-url') {
+        // این خطا مربوط به RTDB است، نه Auth، اما آن را شامل می‌کنیم.
+        message = "خطا در URL پایگاه داده! لطفاً databaseURL را در script.js بررسی کنید.";
     }
     
     customAlert(message);
@@ -281,6 +294,7 @@ onAuthStateChanged(auth, (user) => {
             })
             .catch(error => {
                 console.error("خطا در لود پروفایل:", error);
+                // اگر لود پروفایل شکست خورد، بهتر است خارج شود
                 signOut(auth);
             });
     } else {
@@ -395,7 +409,6 @@ logoutSwitchButton.addEventListener('click', logoutUser);
 profileToggle.addEventListener('click', toggleProfilePanel); 
 profileCloseButton.addEventListener('click', toggleProfilePanel); 
 sendButton.addEventListener('click', sendMessage);
-// 🛑 استفاده از تابع فیکس‌شده toggleDarkMode 🛑
 darkModeToggle.addEventListener('click', toggleDarkMode); 
 
 // ارسال پیام با کلید Enter
@@ -416,4 +429,3 @@ window.onload = function() {
     // ۲. نمایش حالت پیش‌فرض (ورود) تا زمانی که AuthState مشخص شود.
     switchView(false); 
 };
-
