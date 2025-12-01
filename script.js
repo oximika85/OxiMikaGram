@@ -40,77 +40,88 @@ const headerTitle = document.getElementById('header-title');
 // ۳. توابع احراز هویت و ذخیره پروفایل (رفع خطای نادیده گرفتن رمز) 🆔
 // ===================================================================
 
-// **ورود کاربر (اصلاح حیاتی)**
+// **ورود کاربر (با مدیریت خطای شبکه)**
 function loginUser() {
-    const username = usernameAuthInput.value.trim();
-    const password = passwordInput.value;
-    const fakeEmail = `${username}@yourchatapp.com`;
-    
-    auth.signInWithEmailAndPassword(fakeEmail, password)
-        .then(() => {
-            console.log("ورود موفق.");
-        })
-        .catch(error => {
-            // 🚨 رفع مشکل: اگر ورود شکست خورد، فوراً نشست جاری را حذف کن
-            auth.signOut().finally(() => {
-                alert("خطا در ورود: " + error.message);
-                console.error("Login Error:", error);
-            });
-        });
+    const username = usernameAuthInput.value.trim();
+    const password = passwordInput.value;
+    const fakeEmail = `${username}@yourchatapp.com`;
+    
+    auth.signInWithEmailAndPassword(fakeEmail, password)
+        .then(() => {
+            console.log("ورود موفق.");
+        })
+        .catch(error => {
+            // 🚨 رفع مشکل: اگر ورود شکست خورد، فوراً نشست جاری را حذف کن
+            auth.signOut().finally(() => {
+                // 👈 منطق جدید برای تشخیص خطای شبکه
+                if (error.code === 'auth/network-request-failed') {
+                    alert("خطا در اتصال: اتصال به سرور چت مقدور نیست. لطفا ارتباط اینترنت یا نرم‌افزار عبور از محدودیت را بررسی کنید.");
+                } else {
+                    alert("خطا در ورود: " + error.message);
+                }
+                // پایان منطق جدید
+                console.error("Login Error:", error);
+            });
+        });
 }
 
-// **ثبت نام کاربر**
+// **ثبت نام کاربر (با مدیریت خطای شبکه)**
 function registerUser() {
-    const username = usernameAuthInput.value.trim();
-    const password = passwordInput.value;
-    
-    if (username.length < 3 || password.length < 6) {
-        alert("نام کاربری حداقل 3 و گذرواژه حداقل 6 کاراکتر باشد.");
-        return;
-    }
-    
-    database.ref('usernames_map/' + username).once('value')
-        .then(snapshot => {
-            if (snapshot.exists()) {
-                alert('این نام کاربری قبلاً استفاده شده است.');
-                throw new Error('Username already exists'); 
-            }
-            
-            const fakeEmail = `${username}@yourchatapp.com`;
+    const username = usernameAuthInput.value.trim();
+    const password = passwordInput.value;
+    
+    if (username.length < 3 || password.length < 6) {
+        alert("نام کاربری حداقل 3 و گذرواژه حداقل 6 کاراکتر باشد.");
+        return;
+    }
+    
+    database.ref('usernames_map/' + username).once('value')
+        .then(snapshot => {
+            if (snapshot.exists()) {
+                alert('این نام کاربری قبلاً استفاده شده است.');
+                throw new Error('Username already exists'); 
+            }
+            
+            const fakeEmail = `${username}@yourchatapp.com`;
 
-            return auth.createUserWithEmailAndPassword(fakeEmail, password);
-        })
-        .then(userCredential => {
-            const uid = userCredential.user.uid;
-            
-            const p1 = database.ref('usernames_map/' + username).set(uid);
-            const p2 = database.ref('users/' + uid).set({ 
-                username: username,
-            });
-            
-            return Promise.all([p1, p2]);
-        })
-        .then(() => {
-            alert(`ثبت نام ${username} با موفقیت انجام شد.`);
-        })
-        .catch(error => {
-            if (error.message !== 'Username already exists') {
-                alert("خطا در ثبت نام: " + error.message);
+            return auth.createUserWithEmailAndPassword(fakeEmail, password);
+        })
+        .then(userCredential => {
+            const uid = userCredential.user.uid;
+            
+            const p1 = database.ref('usernames_map/' + username).set(uid);
+            const p2 = database.ref('users/' + uid).set({ 
+                username: username,
+            });
+            
+            return Promise.all([p1, p2]);
+        })
+        .then(() => {
+            alert(`ثبت نام ${username} با موفقیت انجام شد.`);
+        })
+        .catch(error => {
+            // 👈 منطق جدید برای تشخیص خطای شبکه
+            if (error.code === 'auth/network-request-failed') {
+                 alert("خطا در اتصال: اتصال به سرور چت مقدور نیست. لطفا ارتباط اینترنت یا نرم‌افزار عبور از محدودیت را بررسی کنید.");
             }
-            console.error("Registration Error:", error);
-        });
+            // بقیه خطاها (مثل تکراری بودن نام کاربری یا Auth)
+            else if (error.message !== 'Username already exists') {
+                alert("خطا در ثبت نام: " + error.message);
+            }
+            console.error("Registration Error:", error);
+        });
 }
 
 // **خروج کاربر**
 function logoutUser() {
-    auth.signOut()
-        .then(() => {
-            alert("خروج با موفقیت انجام شد.");
-            messagesContainer.innerHTML = ''; 
-        })
-        .catch(error => {
-            console.error("خطا در خروج:", error);
-        });
+    auth.signOut()
+        .then(() => {
+            alert("خروج با موفقیت انجام شد.");
+            messagesContainer.innerHTML = ''; 
+        })
+        .catch(error => {
+            console.error("خطا در خروج:", error);
+        });
 }
 
 loginButton.addEventListener('click', loginUser);
@@ -122,36 +133,36 @@ registerButton.addEventListener('click', registerUser);
 // ===================================================================
 
 auth.onAuthStateChanged(user => {
-    if (user) {
-        database.ref('users/' + user.uid).once('value')
-            .then(snapshot => {
-                const userData = snapshot.val();
-                let username = "ناشناس";
-                
-                if (userData && userData.username) {
-                    username = userData.username;
-                }
-                
-                authContainer.style.display = 'none';
-                chatContainer.style.display = 'flex';
-                // اضافه کردن دکمه خروج
-                headerTitle.innerHTML = `<button id="logout-button">خروج</button> چت گروهی: ${username}`; 
-                
-                startChatListeners(username); 
-                
-                // ⚠️ مهم: انتصاب رویداد به دکمه خروج جدید
-                const newLogoutButton = document.getElementById('logout-button');
-                if (newLogoutButton) {
-                    newLogoutButton.addEventListener('click', logoutUser);
-                }
-            });
+    if (user) {
+        database.ref('users/' + user.uid).once('value')
+            .then(snapshot => {
+                const userData = snapshot.val();
+                let username = "ناشناس";
+                
+                if (userData && userData.username) {
+                    username = userData.username;
+                }
+                
+                authContainer.style.display = 'none';
+                chatContainer.style.display = 'flex';
+                // اضافه کردن دکمه خروج
+                headerTitle.innerHTML = `<button id="logout-button">خروج</button> چت گروهی: ${username}`; 
+                
+                startChatListeners(username); 
+                
+                // ⚠️ مهم: انتصاب رویداد به دکمه خروج جدید
+                const newLogoutButton = document.getElementById('logout-button');
+                if (newLogoutButton) {
+                    newLogoutButton.addEventListener('click', logoutUser);
+                }
+            });
 
-        if (usernameInput) usernameInput.style.display = 'none'; 
+        if (usernameInput) usernameInput.style.display = 'none'; 
 
-    } else {
-        authContainer.style.display = 'flex';
-        chatContainer.style.display = 'none';
-    }
+    } else {
+        authContainer.style.display = 'flex';
+        chatContainer.style.display = 'none';
+    }
 });
 
 
@@ -160,60 +171,60 @@ auth.onAuthStateChanged(user => {
 // ===================================================================
 
 function sendMessage() {
-    const messageText = messageInput.value.trim();
-    const currentUser = auth.currentUser;
-    
-    if (!currentUser || messageText === '') {
-        return;
-    }
+    const messageText = messageInput.value.trim();
+    const currentUser = auth.currentUser;
+    
+    if (!currentUser || messageText === '') {
+        return;
+    }
 
-    // گرفتن نام کاربری از هدر
-    const username = headerTitle.textContent.replace("خروج چت گروهی: ", "").trim(); 
-    
-    const newMessage = {
-        uid: currentUser.uid, 
-        name: username,
-        text: messageText,
-        timestamp: firebase.database.ServerValue.TIMESTAMP 
-    };
+    // گرفتن نام کاربری از هدر
+    const username = headerTitle.textContent.replace("خروج چت گروهی: ", "").trim(); 
+    
+    const newMessage = {
+        uid: currentUser.uid, 
+        name: username,
+        text: messageText,
+        timestamp: firebase.database.ServerValue.TIMESTAMP 
+    };
 
-    messagesRef.push(newMessage)
-        .then(() => {
-            messageInput.value = ''; 
-        })
-        .catch((error) => {
-            console.error("خطا در ارسال پیام: ", error);
-        });
+    messagesRef.push(newMessage)
+        .then(() => {
+            messageInput.value = ''; 
+        })
+        .catch((error) => {
+            console.error("خطا در ارسال پیام: ", error);
+        });
 }
 
 sendButton.addEventListener('click', sendMessage);
 messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        sendMessage();
-    }
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
 });
 
 function startChatListeners(currentUserUsername) {
-    messagesRef.on('child_added', (snapshot) => {
-        const messageData = snapshot.val();
-        
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message');
-        
-        if (messageData.name === currentUserUsername) {
-            messageDiv.classList.add('mine'); 
-        } else {
-             messageDiv.classList.add('other'); 
-        }
+    messagesRef.on('child_added', (snapshot) => {
+        const messageData = snapshot.val();
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        
+        if (messageData.name === currentUserUsername) {
+            messageDiv.classList.add('mine'); 
+        } else {
+             messageDiv.classList.add('other'); 
+        }
 
-        const senderSpan = document.createElement('span');
-        senderSpan.classList.add('message-sender');
-        senderSpan.textContent = messageData.name + ":";
-        
-        messageDiv.appendChild(senderSpan);
-        messageDiv.innerHTML += messageData.text; 
+        const senderSpan = document.createElement('span');
+        senderSpan.classList.add('message-sender');
+        senderSpan.textContent = messageData.name + ":";
+        
+        messageDiv.appendChild(senderSpan);
+        messageDiv.innerHTML += messageData.text; 
 
-        messagesContainer.appendChild(messageDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    });
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
 }
