@@ -7,7 +7,7 @@
     
     <!-- لینک به استایل‌های سفارشی -->
     <link rel="stylesheet" href="style.css"> 
-    <!-- لود کردن Tailwind CSS برای کلاس‌های کمکی (فقط برای توسعه) -->
+    <!-- لود کردن Tailwind CSS برای کلاس‌های کمکی -->
     <script src="https://cdn.tailwindcss.com"></script>
     
 </head>
@@ -17,8 +17,7 @@
     <div id="app-container" class="w-full max-w-lg mx-auto bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
 
         <!-- صفحه احراز هویت (ورود/ثبت نام) -->
-        <!-- توجه: در حالت پیش‌فرض، Auth Container را flex و Chat Container را hidden قرار نمی‌دهیم. -->
-        <!-- جاوااسکریپت در onAuthStateChanged بلافاصله این کار را انجام می‌دهد. -->
+        <!-- در اینجا کلاس flex یا hidden اضافه نمی‌کنیم. جاوااسکریپت این کار را انجام می‌دهد. -->
         <div id="auth-container" class="h-full flex-col justify-center items-center p-8">
             <h1 class="text-3xl font-extrabold mb-6" style="color: var(--chat-header-bg);">ورود به پیام‌رسان 👋</h1>
             <input type="text" id="auth-username" placeholder="نام کاربری (حداقل ۳ کاراکتر)" required maxlength="20" class="mb-4">
@@ -28,8 +27,9 @@
             <p id="auth-message" class="text-sm mt-4 text-red-500 hidden"></p>
         </div>
 
-        <!-- کانتینر چت (پس از ورود نمایش داده می‌شود) -->
-        <div id="chat-container" class="h-full flex-col hidden">
+        <!-- کانتینر چت -->
+        <!-- در اینجا کلاس flex یا hidden اضافه نمی‌کنیم. جاوااسکریپت این کار را انجام می‌دهد. -->
+        <div id="chat-container" class="h-full flex-col">
             <!-- هدر چت -->
             <div id="header-title" class="flex items-center justify-between p-4 flex-shrink-0" style="background-color: var(--chat-header-bg); color: white;">
                 <h1 class="text-xl font-bold">گفتگوی عمومی</h1>
@@ -60,7 +60,7 @@
             </div>
         </div>
 
-        <!-- پنل پروفایل و تنظیمات (به طور پیش‌فرض مخفی و خارج از دید) -->
+        <!-- پنل پروفایل و تنظیمات -->
         <div id="profile-panel" class="hidden absolute top-0 right-0 w-80 max-w-xs h-full bg-white shadow-xl z-20 transform translate-x-full transition-transform duration-300" style="background-color: var(--profile-bg);">
             <button class="profile-close-btn absolute top-4 left-4 text-2xl" id="profile-close-button" title="بستن پنل" style="color: var(--text-color);">✕</button>
             
