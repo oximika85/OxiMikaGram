@@ -9,19 +9,18 @@ const firebaseConfig = {
     authDomain: "mika-b7f7c.firebaseapp.com",
     databaseURL: "https://mika-b7f7c-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "mika-b7f7c",
-    // نیازی به سایر مقادیر نیست مگر اینکه از Storage یا Messaging استفاده کنید.
+    // سایر مقادیر ضروری نیستند
 };
 
 // INITIALIZE APP با دسترسی سراسری
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-const auth = firebase.auth();
+const app = firebase.initializeApp(firebaseConfig);
+const database = firebase.database(app);
+const auth = firebase.auth(app);
 const messagesRef = database.ref('group_chat'); 
 
 let currentUserUsername = null; // متغیری برای ذخیره نام کاربری لود شده
 
 // --- ۲. مدیریت عناصر DOM (صفحه) 🏠 ---
-const appContainer = document.getElementById('app-container');
 const authContainer = document.getElementById('auth-container');
 const chatContainer = document.getElementById('chat-container');
 
@@ -36,7 +35,6 @@ const authMessage = document.getElementById('auth-message');
 const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
 const messagesContainer = document.getElementById('messages');
-const headerTitle = document.getElementById('header-title');
 
 // عناصر پروفایل
 const profilePanel = document.getElementById('profile-panel');
@@ -101,12 +99,13 @@ function toggleDarkMode() {
  * نمایش/مخفی کردن پنل پروفایل
  */
 function toggleProfilePanel() {
-    // کلاس‌های Tailwind برای ترنزیشن
+    // از کلاس‌های Tailwind برای ترنزیشن استفاده می‌شود
     const isPanelOpen = profilePanel.classList.contains('translate-x-0');
     
     if (isPanelOpen) {
         profilePanel.classList.remove('translate-x-0');
         profilePanel.classList.add('translate-x-full');
+        // پنهان کردن واقعی پس از پایان ترنزیشن
         setTimeout(() => { profilePanel.classList.add('hidden'); }, 300);
     } else {
         profilePanel.classList.remove('hidden');
@@ -129,9 +128,10 @@ function loginUser() {
             customAlert("ورود موفق.");
         })
         .catch(error => {
+            // در صورت خطا، همیشه خروج کنید تا حالت نامعتبر ایجاد نشود.
             auth.signOut().finally(() => {
                 if (error.code === 'auth/network-request-failed') {
-                    customAlert("خطا در اتصال: اتصال به سرور چت مقدور نیست.");
+                    customAlert("خطا در اتصال: اتصال به سرور چت مقدور نیست. لطفا ارتباط اینترنت را بررسی کنید.");
                 } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                      customAlert("نام کاربری یا گذرواژه اشتباه است.");
                 } else {
@@ -152,21 +152,24 @@ function registerUser() {
         return;
     }
     
+    // ۱. چک کردن نام کاربری در دیتابیس
     database.ref('usernames_map/' + username).once('value')
         .then(snapshot => {
             if (snapshot.exists()) {
                 customAlert('این نام کاربری قبلاً استفاده شده است.');
+                // پرتاب خطا برای جلوگیری از ادامه Promise chain
                 throw new Error('Username already exists'); 
             }
             
             const fakeEmail = `${username}@yourchatapp.com`;
 
+            // ۲. ساخت اکانت در Auth
             return auth.createUserWithEmailAndPassword(fakeEmail, password);
         })
         .then(userCredential => {
             const uid = userCredential.user.uid;
             
-            // ذخیره نگاشت نام کاربری به UID و اطلاعات پروفایل
+            // ۳. ذخیره نگاشت نام کاربری به UID و اطلاعات پروفایل در RTDB
             const p1 = database.ref('usernames_map/' + username).set(uid);
             const p2 = database.ref('users/' + uid).set({ 
                 username: username,
@@ -181,6 +184,7 @@ function registerUser() {
             if (error.code === 'auth/network-request-failed') {
                     customAlert("خطا در اتصال: اتصال به سرور چت مقدور نیست.");
             }
+            // اگر خطای پرتاب شده از مرحله ۱ باشد، پیام توسط customAlert نمایش داده شده است.
             else if (error.message !== 'Username already exists') {
                 customAlert("خطا در ثبت نام: " + error.message);
             }
@@ -205,6 +209,7 @@ function logoutUser() {
 
 auth.onAuthStateChanged(user => {
     if (user) {
+        // کاربر وارد شده است. لود اطلاعات پروفایل
         database.ref('users/' + user.uid).once('value')
             .then(snapshot => {
                 const userData = snapshot.val();
@@ -214,7 +219,6 @@ auth.onAuthStateChanged(user => {
                     username = userData.username;
                 }
                 
-                // ذخیره نام کاربری جاری برای استفاده در ارسال پیام
                 currentUserUsername = username; 
                 
                 // نمایش UI چت
@@ -231,15 +235,17 @@ auth.onAuthStateChanged(user => {
             })
             .catch(error => {
                 console.error("خطا در لود پروفایل:", error);
+                // اگر لود پروفایل شکست خورد، کاربر را خارج کنید تا لاگین کند.
+                auth.signOut();
             });
     } else {
-        // نمایش UI احراز هویت
+        // کاربر خارج شده است. نمایش UI احراز هویت
         authContainer.classList.remove('hidden');
         authContainer.classList.add('flex');
         chatContainer.classList.add('hidden');
         chatContainer.classList.remove('flex');
         
-        // اطمینان از بسته بودن پنل پروفایل (برگشت به حالت اولیه)
+        // اطمینان از بسته بودن پنل پروفایل
         profilePanel.classList.remove('translate-x-0');
         profilePanel.classList.add('translate-x-full');
         profilePanel.classList.add('hidden');
@@ -254,15 +260,15 @@ auth.onAuthStateChanged(user => {
  */
 function renderMessage(messageData, currentUserName) {
     const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', 'rounded-xl', 'p-3', 'max-w-xs', 'shadow-sm', 'relative');
+    messageDiv.classList.add('message', 'rounded-xl', 'p-3', 'max-w-xs', 'shadow-sm', 'relative', 'mb-3');
     
     // تمایز پیام من و پیام دیگران
     if (messageData.name === currentUserName) {
         // پیام من: سمت راست، رنگ آبی
-        messageDiv.classList.add('mine', 'bg-blue-500', 'text-white', 'self-end', 'rounded-br-sm');
+        messageDiv.classList.add('mine', 'bg-blue-500', 'text-white', 'self-start', 'ml-auto', 'rounded-br-sm');
     } else {
         // پیام دیگران: سمت چپ، رنگ سفید/خاکستری
-        messageDiv.classList.add('other', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-white', 'self-start', 'rounded-bl-sm');
+        messageDiv.classList.add('other', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-white', 'self-start', 'rounded-bl-sm', 'mr-auto');
     }
 
     const senderSpan = document.createElement('span');
@@ -294,14 +300,13 @@ function sendMessage() {
         return;
     }
 
-    // 🛑 اعمال تابع sanitize قبل از ارسال به دیتابیس 🛑
     const sanitizedText = sanitize(messageText);
 
     const newMessage = {
         uid: currentUser.uid, 
-        name: currentUserUsername, // استفاده از متغیر سراسری پس از لود شدن
+        name: currentUserUsername, 
         text: sanitizedText, 
-        // 🚨 V8 Syntax: ServerValue.TIMESTAMP 🚨
+        // 🚨 V8 Syntax: firebase.database.ServerValue.TIMESTAMP 🚨
         timestamp: firebase.database.ServerValue.TIMESTAMP 
     };
 
@@ -323,7 +328,8 @@ function startChatListeners() {
     messagesContainer.innerHTML = ''; 
     
     // 🚨 V8 Syntax: messagesRef.on('child_added', ...) 🚨
-    messagesRef.on('child_added', (snapshot) => {
+    // این شنونده برای هر پیام موجود و هر پیام جدید اجرا می‌شود.
+    messagesRef.limitToLast(50).on('child_added', (snapshot) => {
         const messageData = snapshot.val();
         renderMessage(messageData, currentUserUsername);
         
