@@ -37,26 +37,30 @@ const messagesContainer = document.getElementById('messages');
 const headerTitle = document.getElementById('header-title');
 
 // ===================================================================
-// ۳. توابع احراز هویت و ذخیره پروفایل (با تست و نمایش خطا) 🆔
+// ۳. توابع احراز هویت و ذخیره پروفایل (رفع خطای نادیده گرفتن رمز) 🆔
 // ===================================================================
 
-// **ورود کاربر (با نام کاربری و پسورد)**
+// **ورود کاربر (اصلاح حیاتی)**
 function loginUser() {
-    alert('شروع تابع ورود'); // 👈 تست اجرای کد
     const username = usernameAuthInput.value.trim();
     const password = passwordInput.value;
     const fakeEmail = `${username}@yourchatapp.com`;
     
     auth.signInWithEmailAndPassword(fakeEmail, password)
+        .then(() => {
+            console.log("ورود موفق.");
+        })
         .catch(error => {
-            alert("خطا در ورود: " + error.message);
-            console.error("Login Error:", error);
+            // 🚨 رفع مشکل: اگر ورود شکست خورد، فوراً نشست جاری را حذف کن
+            auth.signOut().finally(() => {
+                alert("خطا در ورود: " + error.message);
+                console.error("Login Error:", error);
+            });
         });
 }
 
-// **ثبت نام کاربر (با نام کاربری یکتا)**
+// **ثبت نام کاربر**
 function registerUser() {
-    alert('شروع تابع ثبت نام'); // 👈 تست اجرای کد
     const username = usernameAuthInput.value.trim();
     const password = passwordInput.value;
     
@@ -65,45 +69,53 @@ function registerUser() {
         return;
     }
     
-    // 1. بررسی یکتایی در دیتابیس (usernames_map)
     database.ref('usernames_map/' + username).once('value')
         .then(snapshot => {
             if (snapshot.exists()) {
                 alert('این نام کاربری قبلاً استفاده شده است.');
-                // ⚠️ مهم: اگر نام کاربری تکراری بود، باید اجرای تابع اینجا متوقف شود.
-                return Promise.reject(new Error('Username already exists')); 
+                throw new Error('Username already exists'); 
             }
             
             const fakeEmail = `${username}@yourchatapp.com`;
 
-            // 2. ثبت نام واقعی با Firebase Auth
-            return auth.createUserWithEmailAndPassword(fakeEmail, password)
-                .then(userCredential => {
-                    const uid = userCredential.user.uid;
-                    
-                    // 3. ذخیره نام کاربری و پروفایل
-                    const p1 = database.ref('usernames_map/' + username).set(uid);
-                    const p2 = database.ref('users/' + uid).set({ 
-                        username: username,
-                    });
-                    
-                    return Promise.all([p1, p2]);
-                });
+            return auth.createUserWithEmailAndPassword(fakeEmail, password);
+        })
+        .then(userCredential => {
+            const uid = userCredential.user.uid;
+            
+            const p1 = database.ref('usernames_map/' + username).set(uid);
+            const p2 = database.ref('users/' + uid).set({ 
+                username: username,
+            });
+            
+            return Promise.all([p1, p2]);
         })
         .then(() => {
             alert(`ثبت نام ${username} با موفقیت انجام شد.`);
         })
         .catch(error => {
-            // نمایش خطاهای Firebase و خطای تکراری بودن نام کاربری
             if (error.message !== 'Username already exists') {
                 alert("خطا در ثبت نام: " + error.message);
-                console.error("Registration Error:", error);
             }
+            console.error("Registration Error:", error);
+        });
+}
+
+// **خروج کاربر**
+function logoutUser() {
+    auth.signOut()
+        .then(() => {
+            alert("خروج با موفقیت انجام شد.");
+            messagesContainer.innerHTML = ''; 
+        })
+        .catch(error => {
+            console.error("خطا در خروج:", error);
         });
 }
 
 loginButton.addEventListener('click', loginUser);
 registerButton.addEventListener('click', registerUser);
+
 
 // ===================================================================
 // ۴. مدیریت وضعیت ورود (ورود دائمی و لود پروفایل) 🚪
@@ -122,9 +134,16 @@ auth.onAuthStateChanged(user => {
                 
                 authContainer.style.display = 'none';
                 chatContainer.style.display = 'flex';
-                headerTitle.textContent = "چت گروهی: " + username; 
+                // اضافه کردن دکمه خروج
+                headerTitle.innerHTML = `<button id="logout-button">خروج</button> چت گروهی: ${username}`; 
                 
                 startChatListeners(username); 
+                
+                // ⚠️ مهم: انتصاب رویداد به دکمه خروج جدید
+                const newLogoutButton = document.getElementById('logout-button');
+                if (newLogoutButton) {
+                    newLogoutButton.addEventListener('click', logoutUser);
+                }
             });
 
         if (usernameInput) usernameInput.style.display = 'none'; 
@@ -148,7 +167,8 @@ function sendMessage() {
         return;
     }
 
-    const username = headerTitle.textContent.replace("چت گروهی: ", ""); 
+    // گرفتن نام کاربری از هدر
+    const username = headerTitle.textContent.replace("خروج چت گروهی: ", "").trim(); 
     
     const newMessage = {
         uid: currentUser.uid, 
@@ -173,7 +193,6 @@ messageInput.addEventListener('keypress', (e) => {
     }
 });
 
-// شنونده پیام‌ها
 function startChatListeners(currentUserUsername) {
     messagesRef.on('child_added', (snapshot) => {
         const messageData = snapshot.val();
