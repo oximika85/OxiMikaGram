@@ -17,7 +17,9 @@
     <div id="app-container" class="w-full max-w-lg mx-auto bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
 
         <!-- صفحه احراز هویت (ورود/ثبت نام) -->
-        <div id="auth-container" class="h-full hidden flex-col justify-center items-center p-8">
+        <!-- توجه: در حالت پیش‌فرض، Auth Container را flex و Chat Container را hidden قرار نمی‌دهیم. -->
+        <!-- جاوااسکریپت در onAuthStateChanged بلافاصله این کار را انجام می‌دهد. -->
+        <div id="auth-container" class="h-full flex-col justify-center items-center p-8">
             <h1 class="text-3xl font-extrabold mb-6" style="color: var(--chat-header-bg);">ورود به پیام‌رسان 👋</h1>
             <input type="text" id="auth-username" placeholder="نام کاربری (حداقل ۳ کاراکتر)" required maxlength="20" class="mb-4">
             <input type="password" id="auth-password" placeholder="گذرواژه (حداقل ۶ کاراکتر)" required maxlength="20" class="mb-6">
@@ -27,7 +29,7 @@
         </div>
 
         <!-- کانتینر چت (پس از ورود نمایش داده می‌شود) -->
-        <div id="chat-container" class="h-full flex flex-col hidden">
+        <div id="chat-container" class="h-full flex-col hidden">
             <!-- هدر چت -->
             <div id="header-title" class="flex items-center justify-between p-4 flex-shrink-0" style="background-color: var(--chat-header-bg); color: white;">
                 <h1 class="text-xl font-bold">گفتگوی عمومی</h1>
