@@ -1,13 +1,13 @@
 // --- ۱. تنظیمات و اتصال Firebase 🔑 ---
 // 🚨 توجه: این کد از سینتکس Firebase V8 و دسترسی سراسری (بدون import) استفاده می‌کند.
 
-// ** 🚨 مهم **: این تنظیمات را باید با تنظیمات واقعی پروژه Firebase خود جایگزین کنید.
+// ** 🚨 مهم: لطفاً مقادیر زیر را با تنظیمات واقعی پروژه Firebase خود جایگزین کنید. **
 const firebaseConfig = {
-    // تنظیمات ساختگی
-    apiKey: "AIzaSyAyGhDkqAwyCv-Sqa8z4BbkNa_Srpv4Zk",
-    authDomain: "mika-b7f7c.firebaseapp.com",
-    databaseURL: "https://mika-b7f7c-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "mika-b7f7c",
+    // تنظیمات placeholder (باید با تنظیمات پروژه شما جایگزین شوند)
+    apiKey: "YOUR_VALID_API_KEY_HERE", 
+    authDomain: "YOUR_AUTH_DOMAIN_HERE.firebaseapp.com",
+    databaseURL: "YOUR_DATABASE_URL_HERE",
+    projectId: "YOUR_PROJECT_ID_HERE",
 };
 
 // INITIALIZE APP با دسترسی سراسری
@@ -131,6 +131,8 @@ function loginUser() {
                     customAlert("خطا در اتصال: اتصال به سرور چت مقدور نیست. لطفا ارتباط اینترنت را بررسی کنید.");
                 } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                      customAlert("نام کاربری یا گذرواژه اشتباه است.");
+                } else if (error.code === 'auth/internal-error' && error.message.includes("API key not valid")) {
+                     customAlert("خطا: کلید API فایربیس نامعتبر است. لطفاً تنظیمات را بررسی کنید.");
                 } else {
                     customAlert("خطا در ورود: " + error.message);
                 }
@@ -179,6 +181,9 @@ function registerUser() {
         .catch(error => {
             if (error.code === 'auth/network-request-failed') {
                     customAlert("خطا در اتصال: اتصال به سرور چت مقدور نیست.");
+            }
+            else if (error.code === 'auth/internal-error' && error.message.includes("API key not valid")) {
+                 customAlert("خطا: کلید API فایربیس نامعتبر است. لطفاً تنظیمات را بررسی کنید.");
             }
             else if (error.message !== 'Username already exists') {
                 customAlert("خطا در ثبت نام: " + error.message);
