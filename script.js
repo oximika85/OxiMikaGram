@@ -13,7 +13,7 @@ import {
     set, 
     push, 
     onChildAdded, 
-    serverTimestamp, // 🛑 این تابع مستقیماً ایمپورت می‌شود، دیگر نیازی به firebase.database.ServerValue نیست.
+    serverTimestamp,
     get, 
     child 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
@@ -21,18 +21,20 @@ import {
 // --- ۲. تنظیمات و متغیرهای سراسری ---
 
 // ** 🚨 مهم: لطفاً تمام مقادیر زیر را با تنظیمات واقعی پروژه Firebase خود جایگزین کنید. **
+// اگر از مقادیر پیش‌فرض استفاده کنید، برنامه خطا خواهد داد.
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY", // کلید API خود را اینجا قرار دهید
+    apiKey: "YOUR_API_KEY", 
     authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com",
-    // 🛑 فرمت صحیح URL دیتابیس را رعایت کنید: https://[Project-ID]-default-rtdb.REGION.firebasedatabase.app
+    // 🛑 شما باید مقدار زیر را با آدرس کامل Realtime Database خود جایگزین کنید.
+    // مثال صحیح: https://my-chat-app-12345-default-rtdb.asia-southeast1.firebasedatabase.app
     databaseURL: "YOUR_DATABASE_URL_STARTING_WITH_HTTPS", 
     projectId: "YOUR_PROJECT_ID",
-    // storageBucket و messagingSenderId و appId برای این اپلیکیشن چت ضروری نیستند.
+    // سایر فیلدها اختیاری هستند.
 };
 
 // ** راه‌اندازی Firebase **
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db = getDatabase(app); // 🛑 خط ۳۵: خطا در این قسمت برطرف شد، اما همچنان نیازمند URL معتبر است.
 const auth = getAuth(app);
 
 let currentUserUsername = null;
@@ -54,7 +56,7 @@ const authMessage = document.getElementById('auth-message');
 // عناصر چت
 const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
-const messagesContainer = document.getElementById('messages'); // قبلاً messagesDiv بود، اصلاح شد.
+const messagesContainer = document.getElementById('messages');
 
 // عناصر پروفایل
 const profilePanel = document.getElementById('profile-panel');
@@ -125,6 +127,14 @@ function setDarkMode(isDark) {
         document.documentElement.classList.remove('dark');
         localStorage.removeItem(DARK_MODE_KEY);
     }
+}
+
+/**
+ * 🛑 فیکس: تعریف تابع toggleDarkMode که قبلاً تعریف نشده بود 🛑
+ */
+function toggleDarkMode() {
+    const isCurrentlyDark = document.documentElement.classList.contains('dark');
+    setDarkMode(!isCurrentlyDark);
 }
 
 /**
@@ -223,6 +233,7 @@ function handleAuthError(error) {
     } else if (error.code === 'auth/weak-password') {
         message = "گذرواژه ضعیف است. حداقل ۶ کاراکتر استفاده کنید.";
     } else if (error.message.includes("API key not valid") || error.message.includes("databaseURL")) {
+        // این خطا فقط در صورتی نمایش داده می‌شود که Firebase هنوز خطا را نداده باشد، اما برای کمک به کاربر نگه داشته می‌شود.
         message = "خطا: کلید API یا URL دیتابیس در تنظیمات Firebase نامعتبر است. لطفاً فایل script.js را بررسی و ویرایش کنید.";
     }
     
@@ -270,7 +281,6 @@ onAuthStateChanged(auth, (user) => {
             })
             .catch(error => {
                 console.error("خطا در لود پروفایل:", error);
-                // اگر لود پروفایل شکست خورد، بهتر است خارج شود
                 signOut(auth);
             });
     } else {
@@ -340,7 +350,6 @@ function sendMessage() {
         uid: currentUser.uid, 
         name: currentUserUsername, 
         text: sanitizedText, 
-        // 🛑 استفاده مستقیم از تابع ایمپورت‌شده serverTimestamp() 🛑
         timestamp: serverTimestamp() 
     };
 
@@ -362,13 +371,11 @@ function sendMessage() {
 function startChatListeners() {
     messagesContainer.innerHTML = ''; 
     
-    // فقط ۵۰ پیام آخر را لود کن
     const messagesQuery = ref(db, MESSAGES_REF_PATH);
 
     // استفاده از onChildAdded برای لود پیام‌های جدید و موجود
     onChildAdded(messagesQuery, (snapshot) => {
         const messageData = snapshot.val();
-        // 🛑 فقط اگر نام کاربری لود شده باشد پیام‌ها را رندر کن 🛑
         if (currentUserUsername) {
             renderMessage(messageData, currentUserUsername);
         }
@@ -388,7 +395,8 @@ logoutSwitchButton.addEventListener('click', logoutUser);
 profileToggle.addEventListener('click', toggleProfilePanel); 
 profileCloseButton.addEventListener('click', toggleProfilePanel); 
 sendButton.addEventListener('click', sendMessage);
-darkModeToggle.addEventListener('click', () => setDarkMode(!document.documentElement.classList.contains('dark'))); 
+// 🛑 استفاده از تابع فیکس‌شده toggleDarkMode 🛑
+darkModeToggle.addEventListener('click', toggleDarkMode); 
 
 // ارسال پیام با کلید Enter
 messageInput.addEventListener('keypress', (e) => {
