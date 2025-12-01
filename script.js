@@ -23,13 +23,13 @@ import {
 // ** 🚨 مهم: لطفاً تمام مقادیر زیر را با تنظیمات واقعی پروژه Firebase خود جایگزین کنید. **
 // اگر از مقادیر پیش‌فرض استفاده کنید، برنامه خطا خواهد داد.
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY", 
-    authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com",
-    // 🛑 شما باید مقدار زیر را با آدرس کامل Realtime Database خود جایگزین کنید.
-    // مثال صحیح: https://my-chat-app-12345-default-rtdb.asia-southeast1.firebasedatabase.app
-    databaseURL: "YOUR_DATABASE_URL_STARTING_WITH_HTTPS", 
-    projectId: "YOUR_PROJECT_ID",
-    // سایر فیلدها اختیاری هستند.
+  apiKey: "AIzaSyAyGhDkqAwyCv-Sqa8z4BbkNa_SrpXv4Zk",
+  authDomain: "mika-b7f7c.firebaseapp.com",
+  databaseURL: "https://mika-b7f7c-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mika-b7f7c",
+  storageBucket: "mika-b7f7c.firebasestorage.app",
+  messagingSenderId: "524357269646",
+  appId: "1:524357269646:web:89548b32616ebcbe4a31df"
 };
 
 // ** راه‌اندازی Firebase **
@@ -416,3 +416,4 @@ window.onload = function() {
     // ۲. نمایش حالت پیش‌فرض (ورود) تا زمانی که AuthState مشخص شود.
     switchView(false); 
 };
+
