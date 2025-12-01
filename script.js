@@ -1,6 +1,5 @@
 // --- ۱. تنظیمات و اتصال Firebase 🔑 ---
-// 🚨 توجه: تمامی ایمپورت‌های ماژولار (import) حذف شده و از دسترسی سراسری 
-// به Firebase V8 که در index.html لود شده، استفاده می‌شود تا خطای "Cannot use import statement" حل شود.
+// 🚨 توجه: این کد از سینتکس Firebase V8 و دسترسی سراسری (بدون import) استفاده می‌کند.
 
 // ** 🚨 مهم **: این تنظیمات را باید با تنظیمات واقعی پروژه Firebase خود جایگزین کنید.
 const firebaseConfig = {
@@ -9,7 +8,6 @@ const firebaseConfig = {
     authDomain: "mika-b7f7c.firebaseapp.com",
     databaseURL: "https://mika-b7f7c-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "mika-b7f7c",
-    // سایر مقادیر ضروری نیستند
 };
 
 // INITIALIZE APP با دسترسی سراسری
@@ -128,7 +126,6 @@ function loginUser() {
             customAlert("ورود موفق.");
         })
         .catch(error => {
-            // در صورت خطا، همیشه خروج کنید تا حالت نامعتبر ایجاد نشود.
             auth.signOut().finally(() => {
                 if (error.code === 'auth/network-request-failed') {
                     customAlert("خطا در اتصال: اتصال به سرور چت مقدور نیست. لطفا ارتباط اینترنت را بررسی کنید.");
@@ -157,7 +154,6 @@ function registerUser() {
         .then(snapshot => {
             if (snapshot.exists()) {
                 customAlert('این نام کاربری قبلاً استفاده شده است.');
-                // پرتاب خطا برای جلوگیری از ادامه Promise chain
                 throw new Error('Username already exists'); 
             }
             
@@ -184,7 +180,6 @@ function registerUser() {
             if (error.code === 'auth/network-request-failed') {
                     customAlert("خطا در اتصال: اتصال به سرور چت مقدور نیست.");
             }
-            // اگر خطای پرتاب شده از مرحله ۱ باشد، پیام توسط customAlert نمایش داده شده است.
             else if (error.message !== 'Username already exists') {
                 customAlert("خطا در ثبت نام: " + error.message);
             }
@@ -209,7 +204,16 @@ function logoutUser() {
 
 auth.onAuthStateChanged(user => {
     if (user) {
-        // کاربر وارد شده است. لود اطلاعات پروفایل
+        // --- وضعیت: کاربر وارد شده ---
+        
+        // ۱. مخفی کردن کانتینر لاگین و نمایش کانتینر چت
+        authContainer.classList.add('hidden');
+        authContainer.classList.remove('flex');
+
+        chatContainer.classList.remove('hidden');
+        chatContainer.classList.add('flex'); // فعال کردن فلکس برای نمایش عمودی
+        
+        // ۲. لود اطلاعات پروفایل
         database.ref('users/' + user.uid).once('value')
             .then(snapshot => {
                 const userData = snapshot.val();
@@ -221,11 +225,6 @@ auth.onAuthStateChanged(user => {
                 
                 currentUserUsername = username; 
                 
-                // نمایش UI چت
-                authContainer.classList.add('hidden');
-                chatContainer.classList.remove('hidden');
-                chatContainer.classList.add('flex');
-                
                 // به‌روزرسانی پنل پروفایل
                 profileUsername.textContent = username;
                 profileUid.textContent = user.uid;
@@ -235,17 +234,19 @@ auth.onAuthStateChanged(user => {
             })
             .catch(error => {
                 console.error("خطا در لود پروفایل:", error);
-                // اگر لود پروفایل شکست خورد، کاربر را خارج کنید تا لاگین کند.
                 auth.signOut();
             });
     } else {
-        // کاربر خارج شده است. نمایش UI احراز هویت
+        // --- وضعیت: کاربر خارج شده ---
+        
+        // ۱. نمایش کانتینر لاگین و مخفی کردن کانتینر چت
         authContainer.classList.remove('hidden');
-        authContainer.classList.add('flex');
+        authContainer.classList.add('flex'); // فعال کردن فلکس برای چیدمان
+        
         chatContainer.classList.add('hidden');
         chatContainer.classList.remove('flex');
-        
-        // اطمینان از بسته بودن پنل پروفایل
+
+        // ۲. اطمینان از بسته بودن پنل پروفایل
         profilePanel.classList.remove('translate-x-0');
         profilePanel.classList.add('translate-x-full');
         profilePanel.classList.add('hidden');
@@ -306,7 +307,6 @@ function sendMessage() {
         uid: currentUser.uid, 
         name: currentUserUsername, 
         text: sanitizedText, 
-        // 🚨 V8 Syntax: firebase.database.ServerValue.TIMESTAMP 🚨
         timestamp: firebase.database.ServerValue.TIMESTAMP 
     };
 
@@ -327,8 +327,7 @@ function sendMessage() {
 function startChatListeners() {
     messagesContainer.innerHTML = ''; 
     
-    // 🚨 V8 Syntax: messagesRef.on('child_added', ...) 🚨
-    // این شنونده برای هر پیام موجود و هر پیام جدید اجرا می‌شود.
+    // فقط ۵۰ پیام آخر را لود کن
     messagesRef.limitToLast(50).on('child_added', (snapshot) => {
         const messageData = snapshot.val();
         renderMessage(messageData, currentUserUsername);
@@ -357,9 +356,21 @@ messageInput.addEventListener('keypress', (e) => {
 });
 
 
-// --- ۸. راه‌اندازی تم Dark Mode در شروع ---\
+// --- ۸. راه‌اندازی تم Dark Mode در شروع ---
 // چک کردن localStorage برای Dark Mode در هنگام لود شدن
 window.onload = function() {
     const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
     setDarkMode(isDark);
+    
+    // 💡 نکته: منطق onAuthStateChanged باید حالت نمایش اولیه را تنظیم کند،
+    // اما برای اطمینان از این که در هنگام لود شدن صفحه، حداقل یک وضعیت نمایش داده شود:
+    if (!auth.currentUser) {
+        authContainer.classList.add('flex');
+        authContainer.classList.remove('hidden');
+        chatContainer.classList.add('hidden');
+    } else {
+        chatContainer.classList.add('flex');
+        chatContainer.classList.remove('hidden');
+        authContainer.classList.add('hidden');
+    }
 };
