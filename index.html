@@ -8,7 +8,6 @@
     <!-- لینک به استایل‌های سفارشی -->
     <link rel="stylesheet" href="style.css"> 
     <!-- لود کردن Tailwind CSS برای کلاس‌های کمکی (فقط برای توسعه) -->
-    <!-- هشدار Tailwind طبیعی است و مانع اجرا نمی‌شود. -->
     <script src="https://cdn.tailwindcss.com"></script>
     
 </head>
@@ -86,12 +85,12 @@
         </div>
     </div>
     
-    <!-- کتابخانه‌های Firebase باید قبل از script.js لود شوند -->
+    <!-- کتابخانه‌های Firebase V8 (دسترسی سراسری) باید قبل از script.js لود شوند -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
-    <!-- فایل جاوااسکریپت اصلی (باید آخرین مورد باشد) -->
+    <!-- فایل جاوااسکریپت اصلی (باید آخرین مورد باشد و از import استفاده نکند) -->
     <script src="script.js"></script>
 
 </body>
