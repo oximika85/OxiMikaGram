@@ -1,141 +1,173 @@
-/* تنظیمات کلی صفحه */
+/* ================================================= */
+/* تنظیمات اصلی و متغیرهای تم */
+/* ================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+:root {
+    /* Light Mode Defaults (Telegram Light) */
+    --bg-color: #f0f2f5;        /* پس‌زمینه کلی (خیلی روشن) */
+    --card-bg: white;           /* پس‌زمینه کارت/چت */
+    --text-color: #1f2937;      /* متن اصلی */
+    --input-border: #ced4da;    /* حاشیه ورودی */
+    --messages-bg: #e6e6e6;     /* پس‌زمینه ناحیه پیام‌ها */
+    --chat-header-bg: #54A9EB;  /* 🔵 آبی تلگرام */
+    --my-bubble-bg: #34B7F1;    /* 🔵 آبی پیام من */
+    --other-bubble-bg: white;   /* ⚪️ حباب پیام دیگران */
+    --other-text-color: #1f2937;
+    --profile-bg: #f8f9fa;      /* پس زمینه پنل پروفایل */
+}
+
+.dark {
+    /* Dark Mode Overrides (Telegram Dark) */
+    --bg-color: #1a202c;        /* پس‌زمینه کلی تیره */
+    --card-bg: #2d3748;         /* پس‌زمینه کارت/چت تیره */
+    --text-color: #e2e8f0;      /* متن روشن */
+    --input-border: #4a5568;    /* حاشیه ورودی تیره */
+    --messages-bg: #1a202c;     /* پس‌زمینه ناحیه پیام‌ها تیره */
+    --chat-header-bg: #323d4b;  /* خاکستری تیره هدر */
+    --my-bubble-bg: #4c6883;    /* آبی تیره پیام من */
+    --other-bubble-bg: #2d3748; /* حباب پیام دیگران تیره */
+    --other-text-color: #e2e8f0;
+    --profile-bg: #2d3748;      /* پس زمینه پنل پروفایل تیره */
+}
+
+/* ================================================= */
+/* استایل‌های عمومی */
+/* ================================================= */
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #E6EBE0; /* رنگ زمینه روشن تلگرام */
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    padding-top: 20px;
-    direction: rtl; 
-    min-height: 100vh;
+    font-family: 'Inter', Tahoma, sans-serif;
+    direction: rtl;
+    text-align: right;
+    background-color: var(--bg-color);
+    transition: background-color 0.3s;
+    color: var(--text-color);
 }
 
-/* کانتینر اصلی چت */
-#chat-container {
-    width: 95%;
-    max-width: 700px;
-    background-color: #FAFAFA; /* پس‌زمینه سفید چت */
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-    display: flex;
-    flex-direction: column;
+#app-container {
+    height: 90vh;
+    max-height: 800px; /* حداکثر ارتفاع برای دسکتاپ */
+    min-height: 500px;
+    width: 100%;
+    max-width: 450px;
+    background-color: var(--card-bg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
     overflow: hidden;
-    height: 90vh; 
+    position: relative; /* برای قرارگیری پنل پروفایل */
+}
+@media (max-width: 600px) {
+    #app-container {
+        height: 100vh;
+        max-width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+    }
 }
 
-h1 {
-    text-align: center;
-    color: #515151;
-    background-color: #F0F0F0;
-    padding: 15px;
-    margin: 0;
-    font-size: 1.2rem;
-    border-bottom: 1px solid #E0E0E0;
-}
+/* ================================================= */
+/* عناصر UI (ورودی، دکمه، پیام) */
+/* ================================================= */
 
-/* منطقه نمایش پیام‌ها */
-#messages {
-    flex-grow: 1;
-    padding: 15px;
-    overflow-y: auto; 
-    /* طراحی اسکرول بار شبیه تلگرام */
-    scrollbar-width: thin; 
-    scrollbar-color: #0088cc #FAFAFA;
-}
-
-#messages::-webkit-scrollbar {
-    width: 6px;
-}
-
-#messages::-webkit-scrollbar-thumb {
-    background-color: #0088cc;
-    border-radius: 10px;
-}
-
-/* سبک پیام‌ها (عمومی) */
-.message {
-    padding: 10px 14px;
-    border-radius: 18px; /* گوشه‌های گرد تلگرام */
-    margin-bottom: 10px;
-    max-width: 80%;
-    word-wrap: break-word;
-    font-size: 0.95rem;
-    line-height: 1.4;
-    position: relative;
-    clear: both; /* مهم برای چیدمان راست و چپ */
-}
-
-/* پیام‌های ارسالی (شما) */
-.message:not(.other) {
-    background-color: #DDEEFE; /* آبی روشن تلگرام */
-    color: #333;
-    float: right;
-    border-bottom-left-radius: 5px; /* گوشه پایینی تیزتر */
-}
-
-/* پیام‌های دریافتی (دوستان) */
-.message.other {
-    background-color: #FFFFFF; /* سفید یا کرم روشن */
-    border: 1px solid #E0E0E0;
-    color: #333;
-    float: left;
-    border-bottom-right-radius: 5px; /* گوشه پایینی تیزتر */
-}
-
-/* نام فرستنده */
-.message-sender {
-    font-weight: bold;
-    color: #0088cc; /* آبی تیره تلگرام */
-    margin-bottom: 4px;
-    display: block;
-    font-size: 0.85rem;
-}
-
-/* منطقه ورودی پیام و نام کاربری */
-#input-area {
-    display: flex;
-    padding: 10px;
-    background-color: #F9F9F9;
-    border-top: 1px solid #E0E0E0;
-    align-items: center;
-}
-
-#username, #message-input {
+input[type="text"], input[type="password"] {
+    width: 100%;
     padding: 10px 15px;
-    border: 1px solid #CCC;
-    border-radius: 20px; /* ورودی‌های گرد */
-    margin: 0 5px;
-    transition: border-color 0.3s;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    box-sizing: border-box;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    transition: border-color 0.2s;
 }
-
-#username {
-    flex-grow: 0;
-    width: 100px;
-    text-align: center;
-}
-
-#message-input {
-    flex-grow: 1;
-}
-
-#username:focus, #message-input:focus {
-    border-color: #0088cc;
+input:focus {
+    border-color: var(--chat-header-bg);
     outline: none;
 }
 
-/* دکمه ارسال */
-#send-button {
-    background-color: #0088cc; 
-    color: white;
+#auth-container button {
+    width: 100%;
+    max-width: 300px;
+    padding: 12px 25px;
     border: none;
-    padding: 10px 15px;
-    border-radius: 20px; /* دکمه گرد */
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
-    min-width: 70px;
-    transition: background-color 0.3s;
+    transition: background-color 0.2s, transform 0.1s;
+    color: white;
+}
+#login-button { background-color: #4CAF50; } 
+#login-button:hover { background-color: #45a049; transform: translateY(-1px); }
+#register-button { background-color: #007bff; } 
+#register-button:hover { background-color: #0056b3; transform: translateY(-1px); }
+
+#send-button {
+    background-color: var(--chat-header-bg);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 50%; /* دایره‌ای */
+    transition: background-color 0.2s;
+}
+#send-button:hover {
+    background-color: #3a86ff;
+}
+/* مخفی کردن متن دکمه ارسال و استفاده از آیکون */
+#send-button svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+#send-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#send-button:hover {
-    background-color: #0077b3;
+/* استایل حباب‌های پیام */
+.message {
+    font-size: 0.95rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    /* برای حالت نوک تیز */
+    position: relative;
+    /* این استایل‌ها توسط Tailwind در JS اضافه شدند اما برای اطمینان اینجا قرار دارند */
+}
+
+/* استایل پنل پروفایل */
+#profile-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 80%; 
+    max-width: 300px;
+    height: 100%;
+    background-color: var(--profile-bg);
+    box-shadow: -4px 0 15px rgba(0, 0, 0, 0.2);
+    z-index: 20;
+    transform: translateX(100%); 
+    transition: transform 0.3s ease-out;
+    border-radius: 0 12px 12px 0; 
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+/* تغییر کلاس 'open' به کلاس‌های Tailwind */
+#profile-panel.translate-x-0 {
+    transform: translateX(0); 
+}
+
+.profile-close-btn {
+    background-color: transparent;
+    border: none;
+    font-size: 1.5rem;
+    align-self: flex-start;
+    cursor: pointer;
+    color: var(--text-color);
+    transition: opacity 0.2s;
+}
+
+.profile-info {
+    padding: 15px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
