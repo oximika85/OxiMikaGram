@@ -1,431 +1,438 @@
-// --- ۱. ایمپورت‌های Firebase (ماژولار v11+) ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { 
-    getAuth, 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    onAuthStateChanged, 
-    signOut 
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { 
-    getDatabase, 
-    ref, 
-    set, 
-    push, 
-    onChildAdded, 
-    serverTimestamp,
-    get, 
-    child 
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
-
-// --- ۲. تنظیمات و متغیرهای سراسری ---
-
-// ** 🚨 مهم: لطفاً تمام مقادیر زیر را با تنظیمات واقعی پروژه Firebase خود جایگزین کنید. **
+// ----------------------------------------------------------------------
+// --- ۱. تنظیمات Firebase (پیکربندی شما) ---
+// ----------------------------------------------------------------------
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY", 
-    authDomain: "YOUR_AUTH_DOMAIN.firebaseapp.com",
-    // 🛑 شما باید مقدار زیر را با آدرس کامل Realtime Database خود جایگزین کنید.
-    // مثال صحیح: https://my-chat-app-12345-default-rtdb.asia-southeast1.firebasedatabase.app
-    databaseURL: "YOUR_DATABASE_URL_STARTING_WITH_HTTPS", 
-    projectId: "YOUR_PROJECT_ID",
-    // سایر فیلدها اختیاری هستند.
+    apiKey: "AIzaSyAyGhDkqAwyCv-Sqa8z4BbkNa_SrpXv4Zk",
+    authDomain: "mika-b7f7c.firebaseapp.com",
+    databaseURL: "https://mika-b7f7c-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "mika-b7f7c",
+    storageBucket: "mika-b7f7c.firebasestorage.app",
+    messagingSenderId: "524357269646",
+    appId: "1:524357269646:web:89548b32616ebcbe4a31df"
 };
 
-// ** 🛑 بررسی اعتبار سنجی URL دیتابیس (کمکی) 🛑 **
-if (firebaseConfig.databaseURL === "YOUR_DATABASE_URL_STARTING_WITH_HTTPS" || !firebaseConfig.databaseURL.startsWith('http')) {
-    console.error("==========================================================================================");
-    console.error("🔥 خطای راه‌اندازی Firebase: مقدار databaseURL در script.js نامعتبر است!");
-    console.error("🔥 لطفاً 'YOUR_DATABASE_URL_STARTING_WITH_HTTPS' را با آدرس کامل RTDB خود جایگزین کنید.");
-    console.error("🔥 این آدرس باید با 'https://' شروع شود و از کنسول Firebase کپی شده باشد.");
-    console.error("==========================================================================================");
-    // اگر مقدار نامعتبر باشد، از اجرای برنامه جلوگیری نمی‌کند اما یک پیام اخطار شدید نمایش می‌دهد.
-    // خطای اصلی همچنان از خود Firebase SDK صادر خواهد شد.
-}
 
-
-// ** راه‌اندازی Firebase **
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app); 
-const auth = getAuth(app);
-
-let currentUserUsername = null;
-
-const DARK_MODE_KEY = 'chat-app-dark-mode'; 
-const MESSAGES_REF_PATH = 'group_chat'; 
-
-// --- ۳. مدیریت عناصر DOM (صفحه) 🏠 ---
-const authContainer = document.getElementById('auth-container');
-const chatContainer = document.getElementById('chat-container');
-
-// عناصر احراز هویت
-const usernameAuthInput = document.getElementById('auth-username'); 
-const passwordInput = document.getElementById('auth-password');
-const loginButton = document.getElementById('login-button');
-const registerButton = document.getElementById('register-button');
-const authMessage = document.getElementById('auth-message');
-
-// عناصر چت
-const messageInput = document.getElementById('message-input');
-const sendButton = document.getElementById('send-button');
-const messagesContainer = document.getElementById('messages');
-
-// عناصر پروفایل
-const profilePanel = document.getElementById('profile-panel');
-const profileToggle = document.getElementById('profile-toggle');
-const profileCloseButton = document.getElementById('profile-close-button');
-const profileUsername = document.getElementById('profile-username');
-const profileUid = document.getElementById('profile-uid');
-const logoutSwitchButton = document.getElementById('logout-switch-button');
-const darkModeToggle = document.getElementById('dark-mode-toggle');
-
-
-// --- ۴. توابع کمکی امنیتی و UI 🛡️ ---
-
-/**
- * مدیریت نمایش صفحه چت یا ورود
- * @param {boolean} showChat - اگر true باشد، صفحه چت نمایش داده می‌شود، در غیر این صورت صفحه ورود.
- */
-function switchView(showChat) {
-    if (showChat) {
-        // نمایش چت: flex
-        chatContainer.classList.remove('hidden');
-        chatContainer.classList.add('flex');
-        // مخفی کردن ورود: hidden
-        authContainer.classList.add('hidden');
-        authContainer.classList.remove('flex');
-    } else {
-        // نمایش ورود: flex
-        authContainer.classList.remove('hidden');
-        authContainer.classList.add('flex');
-        // مخفی کردن چت: hidden
-        chatContainer.classList.add('hidden');
-        chatContainer.classList.remove('flex');
-    }
-}
-
-/**
- * تابع ضدعفونی کننده (Sanitize): برای جلوگیری از حملات XSS
- */
-function sanitize(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-/**
- * نمایش یک پیام به کاربر (جایگزین alert)
- */
-function customAlert(message) {
-    authMessage.textContent = message;
-    authMessage.classList.remove('hidden');
-    setTimeout(() => {
-        authMessage.classList.add('hidden');
-    }, 5000);
-}
-
-/**
- * تنظیم یا حذف حالت تیره
- */
-function setDarkMode(isDark) {
-    if (isDark) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem(DARK_MODE_KEY, 'true');
-    } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.removeItem(DARK_MODE_KEY);
-    }
-}
-
-/**
- * سوئیچ بین حالت تیره و روشن
- */
-function toggleDarkMode() {
-    const isCurrentlyDark = document.documentElement.classList.contains('dark');
-    setDarkMode(!isCurrentlyDark);
-}
-
-/**
- * نمایش/مخفی کردن پنل پروفایل
- */
-function toggleProfilePanel() {
-    const isPanelOpen = profilePanel.classList.contains('translate-x-0');
+// ----------------------------------------------------------------------
+// --- ۲. راه‌اندازی و انتخاب عناصر DOM ---
+// ----------------------------------------------------------------------
+if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
     
-    if (isPanelOpen) {
-        profilePanel.classList.remove('translate-x-0');
-        profilePanel.classList.add('translate-x-full');
-        setTimeout(() => { profilePanel.classList.add('hidden'); }, 300);
-    } else {
-        profilePanel.classList.remove('hidden');
-        profilePanel.classList.remove('translate-x-full');
-        profilePanel.classList.add('translate-x-0');
-    }
-}
+    // عناصر Authentication و صفحات
+    const authScreen = document.getElementById('authScreen');
+    const passwordInput = document.getElementById('passwordInput');
+    const usernameInput = document.getElementById('usernameInput');
+    const registerButton = document.getElementById('registerButton');
+    const loginButton = document.getElementById('loginButton');
+    const authMessage = document.getElementById('authMessage');
 
+    const chatListScreen = document.getElementById('chatListScreen');
+    const contactsScreen = document.getElementById('contactsScreen');
+    const chatScreen = document.getElementById('chatScreen');
+    const profileScreen = document.getElementById('profileScreen');
 
-// --- ۵. توابع احراز هویت و ذخیره پروفایل 🆔 ---
+    const newChatIcon = document.getElementById('newChatIcon');
+    const contactsListArea = document.getElementById('contactsListArea');
+    const chatListScroll = document.querySelector('.chat-list-scroll');
 
-// **ورود کاربر**
-function loginUser() {
-    const username = usernameAuthInput.value.trim();
-    const password = passwordInput.value;
-    // Firebase Auth از ایمیل استفاده می‌کند، ما نام کاربری را به یک ایمیل ساختگی تبدیل می‌کنیم
-    const fakeEmail = `${username}@yourchatapp.com`;
+    const messagesArea = document.getElementById('messagesArea');
+    const chatInput = document.getElementById('chatInput');
+    const sendChatButton = document.getElementById('sendChatButton');
+    const chatNameDetail = chatScreen.querySelector('.chat-name-detail');
+
+    const userProfileUsername = document.getElementById('userProfileUsername');
+    const userProfileUID = document.getElementById('userProfileUID');
+    const newUsernameInput = document.getElementById('newUsernameInput');
+    const updateUsernameButton = document.getElementById('updateUsernameButton');
     
-    signInWithEmailAndPassword(auth, fakeEmail, password)
-        .then(() => {
-            customAlert("ورود موفق.");
-        })
-        .catch(error => {
-            handleAuthError(error);
+    let currentUsername = null; 
+    let currentUID = null;
+    let chatRef = null;
+    let userRegisteredUIDs = {}; 
+    let currentChatId = 'project_channel'; 
+    let currentChatName = 'کانال عمومی پروژه';
+    
+    // --- مراجع Firebase ---
+    const usersRef = database.ref('users');
+    const botQueueRef = database.ref('botQueue');
+    const userChatsRef = (uid) => database.ref('userChats/' + uid);
+
+    // ----------------------------------------------------------------------
+    // --- ۳. توابع مدیریت UI و انیمیشن‌ها (رفع خطای ReferenceError) ---
+    // ----------------------------------------------------------------------
+    function showScreen(screenToShow) {
+        [authScreen, chatListScreen, contactsScreen, chatScreen, profileScreen].forEach(screen => {
+            if(screen) screen.classList.remove('active-screen');
         });
-}
+        if(screenToShow) screenToShow.classList.add('active-screen');
+    }
 
-// **ثبت نام کاربر**
-function registerUser() {
-    const username = usernameAuthInput.value.trim();
-    const password = passwordInput.value;
-    
-    if (username.length < 3 || password.length < 6) {
-        customAlert("نام کاربری حداقل 3 و گذرواژه حداقل 6 کاراکتر باشد.");
-        return;
+    // ----------------------------------------------------------------------
+    // --- ۴. امنیت (رفع XSS) و توابع چت ---
+    // ----------------------------------------------------------------------
+
+    function sanitizeText(text) {
+        return text.replace(/&/g, '&amp;')
+                   .replace(/</g, '&lt;')
+                   .replace(/>/g, '&gt;')
+                   .replace(/"/g, '&quot;')
+                   .replace(/'/g, '&#039;');
     }
     
-    const fakeEmail = `${username}@yourchatapp.com`;
-    
-    // ۱. چک کردن نام کاربری در دیتابیس
-    get(child(ref(db), `usernames_map/${username}`))
-        .then(snapshot => {
-            if (snapshot.exists()) {
-                customAlert('این نام کاربری قبلاً استفاده شده است.');
-                // پرتاب خطا برای جلوگیری از اجرای ادامه Promise
-                throw new Error('Username already exists'); 
-            }
-            
-            // ۲. ساخت اکانت در Auth
-            return createUserWithEmailAndPassword(auth, fakeEmail, password);
-        })
-        .then(userCredential => {
-            const uid = userCredential.user.uid;
-            
-            // ۳. ذخیره نگاشت نام کاربری به UID و اطلاعات پروفایل در RTDB
-            const p1 = set(ref(db, `usernames_map/${username}`), uid);
-            const p2 = set(ref(db, `users/${uid}`), { 
-                username: username,
-            });
-            
-            return Promise.all([p1, p2]);
-        })
-        .then(() => {
-            customAlert(`ثبت نام ${username} با موفقیت انجام شد.`);
-        })
-        .catch(error => {
-            if (error.message !== 'Username already exists') {
-                handleAuthError(error);
-            }
-        });
-}
-
-/**
- * تابع مرکزی مدیریت خطاهای Firebase Auth
- * @param {object} error - شیء خطای Firebase
- */
-function handleAuthError(error) {
-    let message = "خطای ناشناخته در احراز هویت.";
-    console.error("Auth Error:", error.code, error.message);
-    
-    if (error.code === 'auth/network-request-failed') {
-        message = "خطا در اتصال به سرور. ارتباط اینترنت را بررسی کنید.";
-    } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        message = "نام کاربری یا گذرواژه اشتباه است.";
-    } else if (error.code === 'auth/email-already-in-use') {
-        message = "ایمیل (نام کاربری) قبلاً ثبت شده است.";
-    } else if (error.code === 'auth/weak-password') {
-        message = "گذرواژه ضعیف است. حداقل ۶ کاراکتر استفاده کنید.";
-    } else if (error.code === 'app/invalid-url') {
-        // این خطا مربوط به RTDB است، نه Auth، اما آن را شامل می‌کنیم.
-        message = "خطا در URL پایگاه داده! لطفاً databaseURL را در script.js بررسی کنید.";
-    }
-    
-    customAlert(message);
-}
-
-// **خروج کاربر**
-function logoutUser() {
-    signOut(auth)
-        .then(() => {
-            customAlert("خروج با موفقیت انجام شد.");
-            messagesContainer.innerHTML = ''; 
-        })
-        .catch(error => {
-            console.error("خطا در خروج:", error);
-        });
-}
-
-
-// --- ۶. مدیریت وضعیت ورود (لود پروفایل) 🚪 ---
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // --- وضعیت: کاربر وارد شده ---
-        switchView(true); // نمایش صفحه چت
+    function createMessageElement(username, text) {
+        const messageDiv = document.createElement('div');
+        const sanitizedText = sanitizeText(text); 
         
-        // لود اطلاعات پروفایل
-        get(child(ref(db), `users/${user.uid}`))
-            .then(snapshot => {
-                const userData = snapshot.val();
-                let username = "ناشناس";
+        messageDiv.innerHTML = `${sanitizedText} <span class="message-sender">(@${username})</span>`; 
+        
+        if (username === currentUsername) {
+            messageDiv.classList.add('chat-message', 'my-chat-message');
+        } else {
+            messageDiv.classList.add('chat-message', 'other-chat-message');
+        }
+        return messageDiv;
+    }
+
+    function sendMessage() {
+        const messageText = chatInput.value.trim();
+        
+        if (messageText !== "" && chatRef && currentUsername) {
+            const messageData = {
+                username: currentUsername,
+                text: messageText,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                chatId: currentChatId 
+            };
+            
+            chatRef.push(messageData).then(() => {
+                chatInput.value = ''; 
                 
-                if (userData && userData.username) {
-                    username = userData.username;
+                // 1. آپدیت نود userChats برای نمایش در لیست چت (Real-time)
+                const messageUpdate = {
+                    lastMessage: sanitizeText(messageText),
+                    lastSender: currentUsername,
+                    time: new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
+                    name: currentChatName 
+                };
+
+                if (currentChatId.startsWith('private_')) {
+                    const partners = currentChatId.split('_').slice(1);
+                    partners.forEach(uid => {
+                        const partnerRef = userChatsRef(uid).child(currentChatId);
+                        // اگر خودمان فرستنده بودیم، پیام را خوانده شده فرض می‌کنیم
+                        if (uid === currentUID) {
+                             partnerRef.update({...messageUpdate, unread: false});
+                        } else {
+                             // برای مخاطب مقابل، پیام جدید خوانده نشده است
+                             partnerRef.update({...messageUpdate, unread: true});
+                        }
+                    });
+                } else {
+                    // برای چت عمومی
+                    userChatsRef(currentUID).child('project_channel').update({...messageUpdate, unread: false}); 
                 }
-                
-                currentUserUsername = username; 
-                
-                // به‌روزرسانی پنل پروفایل
-                profileUsername.textContent = username;
-                profileUid.textContent = user.uid;
-                
-                // شروع گوش دادن به پیام‌ها
-                startChatListeners(); 
-            })
-            .catch(error => {
-                console.error("خطا در لود پروفایل:", error);
-                // اگر لود پروفایل شکست خورد، بهتر است خارج شود
-                signOut(auth);
+
+                // 2. تشخیص و ارسال فرمان ربات (@atlas)
+                if (messageText.toLowerCase().startsWith('@atlas')) {
+                    botQueueRef.push({
+                        sender: currentUsername,
+                        command: messageText,
+                        chatRefKey: chatRef.key, 
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    console.log("دستور ربات اطلس به صف ارسال شد.");
+                }
+
             });
-    } else {
-        // --- وضعیت: کاربر خارج شده ---
-        switchView(false); // نمایش صفحه ورود
-        
-        // اطمینان از بسته بودن پنل پروفایل
-        profilePanel.classList.remove('translate-x-0');
-        profilePanel.classList.add('translate-x-full');
-        profilePanel.classList.add('hidden');
-        
-        // ریست کردن نام کاربری
-        currentUserUsername = null;
-    }
-});
-
-
-// --- ۷. منطق چت و ارسال/نمایش پیام 💬 ---
-
-/**
- * رندر کردن یک حباب پیام در UI
- */
-function renderMessage(messageData, currentUserName) {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', 'rounded-xl', 'p-3', 'max-w-xs', 'shadow-sm', 'relative', 'mb-3', 'flex-shrink-0');
-    
-    const isMine = messageData.name === currentUserName;
-    
-    if (isMine) {
-        // پیام من: سمت راست، رنگ آبی
-        messageDiv.classList.add('bg-blue-500', 'text-white', 'ml-auto', 'rounded-br-sm');
-    } else {
-        // پیام دیگران: سمت چپ، رنگ سفید/خاکستری
-        messageDiv.classList.add('bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-white', 'mr-auto', 'rounded-bl-sm');
-    }
-
-    const senderSpan = document.createElement('span');
-    senderSpan.classList.add('message-sender', 'block', 'text-xs', 'font-semibold', 'mb-1');
-    senderSpan.textContent = messageData.name;
-    
-    if (isMine) {
-        senderSpan.classList.add('text-blue-200');
-    } else {
-        senderSpan.classList.add('text-gray-500', 'dark:text-gray-400');
+        }
     }
     
-    const sanitizedText = sanitize(messageData.text);
-    const textNode = document.createTextNode(sanitizedText); 
-
-    messageDiv.appendChild(senderSpan);
-    messageDiv.appendChild(textNode);
-
-    messagesContainer.appendChild(messageDiv);
-}
-
-function sendMessage() {
-    const messageText = messageInput.value.trim();
-    const currentUser = auth.currentUser;
-    
-    if (!currentUser || messageText === '') {
-        return;
-    }
-
-    const sanitizedText = sanitize(messageText);
-
-    const newMessage = {
-        uid: currentUser.uid, 
-        name: currentUserUsername, 
-        text: sanitizedText, 
-        timestamp: serverTimestamp() 
-    };
-
-    // push پیام به مسیر گروهی
-    push(ref(db, MESSAGES_REF_PATH), newMessage)
-        .then(() => {
-            messageInput.value = ''; 
-            messageInput.focus();
-        })
-        .catch((error) => {
-            console.error("خطا در ارسال پیام: ", error);
-            customAlert("خطا در ارسال پیام. دوباره تلاش کنید.");
-        });
-}
-
-/**
- * تنظیم شنونده بلادرنگ RTDB
- */
-function startChatListeners() {
-    messagesContainer.innerHTML = ''; 
-    
-    const messagesQuery = ref(db, MESSAGES_REF_PATH);
-
-    // استفاده از onChildAdded برای لود پیام‌های جدید و موجود
-    onChildAdded(messagesQuery, (snapshot) => {
-        const messageData = snapshot.val();
-        if (currentUserUsername) {
-            renderMessage(messageData, currentUserUsername);
+    function attachMessageListener(ref) {
+        if (chatRef) {
+             chatRef.off('child_added'); 
         }
         
-        // اسکرول به پایین (تأخیر جزئی برای رندر شدن حباب‌ها)
-        setTimeout(() => {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }, 100);
-    });
-}
-
-
-// --- ۸. Event Listeners ---
-loginButton.addEventListener('click', loginUser);
-registerButton.addEventListener('click', registerUser);
-logoutSwitchButton.addEventListener('click', logoutUser); 
-profileToggle.addEventListener('click', toggleProfilePanel); 
-profileCloseButton.addEventListener('click', toggleProfilePanel); 
-sendButton.addEventListener('click', sendMessage);
-darkModeToggle.addEventListener('click', toggleDarkMode); 
-
-// ارسال پیام با کلید Enter
-messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault(); 
-        sendMessage();
+        messagesArea.innerHTML = '';
+        chatRef = ref; 
+        
+        chatRef.limitToLast(100).on('child_added', (snapshot) => {
+            const message = snapshot.val();
+            const messageElement = createMessageElement(message.username, message.text);
+            messagesArea.appendChild(messageElement);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        });
     }
-});
 
-
-// --- ۹. راه‌اندازی اولیه ---
-window.onload = function() {
-    // ۱. لود وضعیت تم تیره
-    const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
-    setDarkMode(isDark);
+    // ----------------------------------------------------------------------
+    // --- ۵. مدیریت لیست چت دینامیک (Real-time List) ---
+    // ----------------------------------------------------------------------
     
-    // ۲. نمایش حالت پیش‌فرض (ورود) تا زمانی که AuthState مشخص شود.
-    switchView(false); 
-};
+    function createChatItem(chatId, chatName, lastMsg, time, unread = false) {
+        const item = document.createElement('div');
+        item.classList.add('chat-item');
+        if (unread) item.classList.add('unread');
+        item.setAttribute('data-chat-id', chatId);
+        
+        // تعیین رنگ آواتار (می‌توانید با هش UID آن را دینامیک کنید)
+        const avatarColor = chatId === 'project_channel' ? '#007aff' : '#ff9500';
+        
+        item.innerHTML = `
+            <div class="avatar" style="background-color: ${avatarColor};"></div>
+            <div class="content">
+                <div class="content-top">
+                    <span class="chat-name">${chatName}</span>
+                    <span class="time">${time}</span>
+                </div>
+                <div class="last-message">
+                    <span style="flex-grow: 1; overflow: hidden; text-overflow: ellipsis;">${lastMsg}</span>
+                    <span class="unread-badge">!</span>
+                </div>
+            </div>
+        `;
+        return item;
+    }
+
+    function loadDynamicChatList() {
+        chatListScroll.innerHTML = ''; 
+        
+        // 1. گوش دادن به لیست چت‌های کاربر فعلی
+        userChatsRef(currentUID).on('value', (snapshot) => {
+            // ساخت یک آرایه از آیتم‌ها برای مرتب‌سازی
+            let chatItemsArray = [];
+            
+            snapshot.forEach(childSnapshot => {
+                const chatId = childSnapshot.key;
+                const chatData = childSnapshot.val();
+                
+                // unread: اگر آخرین فرستنده ما نبودیم و فیلد unread در دیتابیس true بود
+                const isUnread = chatData.lastSender !== currentUsername && chatData.unread;
+
+                const item = createChatItem(
+                    chatId, 
+                    chatData.name, 
+                    sanitizeText(chatData.lastMessage || 'شروع گفتگو'), 
+                    chatData.time || 'جدید',
+                    isUnread
+                );
+                
+                chatItemsArray.push({ element: item, chatId: chatId });
+                
+                item.addEventListener('click', () => {
+                    currentChatId = chatId;
+                    currentChatName = chatData.name;
+                    item.classList.remove('unread');
+                    
+                    // تنظیم unread: false در دیتابیس هنگام باز کردن چت
+                    userChatsRef(currentUID).child(chatId).update({unread: false});
+
+                    chatNameDetail.textContent = currentChatName;
+                    attachMessageListener(database.ref('chats/' + chatId));
+                    showScreen(chatScreen);
+                });
+            });
+
+            // 2. نمایش آیتم‌ها در لیست (می‌توانید اینجا بر اساس زمان مرتب کنید)
+            chatListScroll.innerHTML = '';
+            chatItemsArray.forEach(item => chatListScroll.appendChild(item.element));
+            
+            // 3. اگر کانال عمومی به طور خودکار در دیتابیس ثبت نشده بود، آن را اضافه کنید
+            if(!document.querySelector('.chat-item[data-chat-id="project_channel"]')) {
+                 const generalChannelItem = createChatItem('project_channel', 'کانال عمومی پروژه', 'در حال لود پیام...', 'اکنون');
+                 chatListScroll.insertBefore(generalChannelItem, chatListScroll.firstChild);
+            }
+        });
+    }
+
+    // ----------------------------------------------------------------------
+    // --- ۶. منطق Authentication ---
+    // ----------------------------------------------------------------------
+    
+    // لود اولیه کاربران برای بررسی نام کاربری تکراری
+    usersRef.once('value', snapshot => {
+        snapshot.forEach(childSnapshot => {
+            const userData = childSnapshot.val();
+            userRegisteredUIDs[userData.username] = childSnapshot.key;
+        });
+    });
+
+    registerButton.addEventListener('click', async () => {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        if (!username || !password) { authMessage.textContent = 'لطفا نام کاربری و رمز عبور را پر کنید.'; return; }
+        if (Object.keys(userRegisteredUIDs).includes(username)) { authMessage.textContent = 'این نام کاربری قبلاً ثبت شده است.'; return; }
+        
+        try {
+            const fakeEmail = `${username}@mikachat.com`; 
+            const userCredential = await auth.createUserWithEmailAndPassword(fakeEmail, password);
+            const uid = userCredential.user.uid;
+            
+            await usersRef.child(uid).set({ username: username });
+            // ایجاد چت عمومی در لیست چت کاربر جدید
+            userChatsRef(uid).child('project_channel').set({
+                 name: 'کانال عمومی پروژه', lastMessage: 'به چت روم خوش آمدید!', time: 'اکنون', lastSender: 'System', unread: false 
+            });
+            userRegisteredUIDs[username] = uid;
+            authMessage.textContent = 'ثبت نام موفق! در حال ورود...';
+        } catch (error) {
+            authMessage.textContent = 'خطا در ثبت نام: ' + error.message;
+        }
+    });
+
+    loginButton.addEventListener('click', async () => {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        if (!username || !password) { authMessage.textContent = 'لطفا نام کاربری و رمز عبور را پر کنید.'; return; }
+        
+        const fakeEmail = `${username}@mikachat.com`; 
+        try {
+            await auth.signInWithEmailAndPassword(fakeEmail, password);
+        } catch (error) {
+            authMessage.textContent = 'خطا در ورود: نام کاربری یا رمز عبور اشتباه است.';
+        }
+    });
+
+    document.getElementById('logoutButton').addEventListener('click', () => { auth.signOut(); });
+
+    // ----------------------------------------------------------------------
+    // --- ۷. مدیریت وضعیت کاربر و لود داده‌ها ---
+    // ----------------------------------------------------------------------
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            currentUID = user.uid;
+            const snapshot = await usersRef.child(currentUID).once('value');
+            const userData = snapshot.val();
+            
+            if (userData && userData.username) {
+                currentUsername = userData.username;
+
+                userProfileUID.textContent = currentUID;
+                userProfileUsername.textContent = currentUsername;
+
+                loadDynamicChatList(); 
+                
+                // اتصال به چت عمومی به عنوان چت پیش‌فرض
+                document.querySelector('.chat-header .chat-name-detail').textContent = currentChatName;
+                attachMessageListener(database.ref('chats/project_channel'));
+                
+                showScreen(chatListScreen);
+            } else {
+                auth.signOut();
+            }
+        } else {
+            showScreen(authScreen);
+        }
+    });
+
+    // ----------------------------------------------------------------------
+    // --- ۸. مدیریت پروفایل، آیدی و مخاطبین ---
+    // ----------------------------------------------------------------------
+    
+    updateUsernameButton.addEventListener('click', async () => {
+        const newUsername = newUsernameInput.value.trim();
+        if (!newUsername || newUsername === currentUsername) {
+            alert("لطفاً یک آیدی جدید و معتبر وارد کنید.");
+            return;
+        }
+
+        const usernameExists = Object.keys(userRegisteredUIDs).includes(newUsername);
+        
+        if (usernameExists && userRegisteredUIDs[newUsername] !== currentUID) {
+            alert("این آیدی قبلاً توسط شخص دیگری استفاده شده است.");
+            return;
+        }
+        
+        try {
+            await usersRef.child(currentUID).update({ username: newUsername });
+            
+            delete userRegisteredUIDs[currentUsername];
+            userRegisteredUIDs[newUsername] = currentUID;
+            currentUsername = newUsername;
+            userProfileUsername.textContent = newUsername;
+            newUsernameInput.value = '';
+            
+            alert("آیدی با موفقیت به " + newUsername + " تغییر یافت.");
+        } catch (error) {
+            alert("خطا در به‌روزرسانی آیدی: " + error.message);
+        }
+    });
+    
+    function loadContacts() {
+        contactsListArea.innerHTML = '';
+        usersRef.once('value', snapshot => {
+            snapshot.forEach(childSnapshot => {
+                const userData = childSnapshot.val();
+                const uid = childSnapshot.key;
+                
+                if (uid !== currentUID) { 
+                    const contactDiv = createChatItem(uid, userData.username, `@${userData.username}`, 'آیدی');
+                    contactsListArea.appendChild(contactDiv);
+
+                    contactDiv.addEventListener('click', () => startNewChat(userData.username, uid));
+                }
+            });
+        });
+    }
+
+    function startNewChat(otherUsername, otherUID) {
+        const chatPartnerIDs = [currentUID, otherUID].sort();
+        const privateChatID = `private_${chatPartnerIDs[0]}_${chatPartnerIDs[1]}`;
+        currentChatId = privateChatID;
+        currentChatName = otherUsername;
+        
+        // اطمینان از وجود چت در لیست چت‌های ما و مخاطب
+        userChatsRef(currentUID).child(privateChatID).once('value', snapshot => {
+            if (!snapshot.exists()) {
+                // ایجاد چت برای ما
+                userChatsRef(currentUID).child(privateChatID).set({
+                    name: otherUsername,
+                    lastMessage: 'شروع گفتگو',
+                    time: 'جدید',
+                    lastSender: '',
+                    unread: false
+                });
+                // ایجاد چت برای مخاطب
+                userChatsRef(otherUID).child(privateChatID).set({
+                    name: currentUsername,
+                    lastMessage: 'شروع گفتگو',
+                    time: 'جدید',
+                    lastSender: '',
+                    unread: false
+                });
+            }
+        });
+
+        chatNameDetail.textContent = otherUsername;
+        attachMessageListener(database.ref('chats/' + privateChatID));
+        showScreen(chatScreen);
+    }
+    
+    // ----------------------------------------------------------------------
+    // --- ۹. رویدادهای UI ---
+    // ----------------------------------------------------------------------
+
+    document.getElementById('profileIcon').addEventListener('click', () => { showScreen(document.getElementById('profileScreen')); });
+    document.getElementById('backToChatListButton').addEventListener('click', () => { showScreen(chatListScreen); });
+    
+    newChatIcon.addEventListener('click', () => {
+        loadContacts();
+        showScreen(contactsScreen);
+    });
+
+    document.getElementById('backToChatListFromContacts').addEventListener('click', () => { showScreen(chatListScreen); });
+
+    document.getElementById('backToListButton').addEventListener('click', () => { showScreen(chatListScreen); });
+    sendChatButton.addEventListener('click', sendMessage);
+
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); 
+            sendMessage();
+        }
+    });
+
+} else {
+    console.error("Firebase library failed to load.");
+}

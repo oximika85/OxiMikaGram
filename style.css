@@ -1,401 +1,188 @@
-/* ================================================= */
-/* تنظیمات اصلی و متغیرهای تم */
-/* ================================================= */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-
-:root {
-    /* Light Mode Defaults (Telegram Light) */
-    --bg-color: #e6e6e6;        /* پس‌زمینه کلی (خیلی روشن) */
-    --card-bg: white;           /* پس‌زمینه کارت/چت */
-    --text-color: #1f2937;      /* متن اصلی */
-    --input-border: #ced4da;    /* حاشیه ورودی */
-    --messages-bg: #EAEAEA;     /* پس‌زمینه ناحیه پیام‌ها */
-    --chat-header-bg: #54A9EB;  /* 🔵 آبی تلگرام */
-    --my-bubble-bg: #34B7F1;    /* 🔵 آبی پیام من */
-    --other-bubble-bg: white;   /* ⚪️ حباب پیام دیگران */
-    --other-text-color: #1f2937;
-    --profile-bg: #f8f9fa;      /* پس زمینه پنل پروفایل */
-}
-
-.dark {
-    /* Dark Mode Overrides (Telegram Dark) */
-    --bg-color: #1a202c;        /* پس‌زمینه کلی تیره */
-    --card-bg: #2d3748;         /* پس‌زمینه کارت/چت تیره */
-    --text-color: #f7fafc;      /* متن روشن */
-    --input-border: #4a5568;    /* حاشیه ورودی تیره */
-    --messages-bg: #1F2531;     /* پس‌زمینه ناحیه پیام‌ها تیره */
-    --chat-header-bg: #313A46;  /* هدر تیره */
-    --my-bubble-bg: #405788;    /* 🔵 آبی تیره پیام من */
-    --other-bubble-bg: #313A46; /* ⚫️ حباب پیام دیگران تیره */
-    --other-text-color: #f7fafc;
-    --profile-bg: #2a333f;      /* پس زمینه پنل پروفایل تیره */
-}
-
+/* --- تنظیمات پایه --- */
 body {
-    font-family: 'Inter', Tahoma, sans-serif;
-    background-color: var(--bg-color); 
-    direction: rtl; 
-    color: var(--text-color); 
-    transition: background-color 0.3s;
-}
-
-/* ================================================= */
-/* کانتینر اپلیکیشن */
-/* ================================================= */
-#app-container {
-    width: 100%; 
-    max-width: 500px;
-    background-color: var(--card-bg);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    overflow: hidden;
+    min-height: 100vh;
     display: flex;
-    flex-direction: column;
-    height: 90vh; 
-    transition: background-color 0.3s;
-    position: relative; 
-}
-
-.dark #app-container {
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
-
-/* ================================================= */
-/* استایل فرم ورود/ثبت نام */
-/* ================================================= */
-#auth-container {
-    display: flex; 
-    flex-direction: column;
-    width: 100%; 
-    max-width: 400px; 
-    padding: 30px;
-    background-color: var(--card-bg); 
-    border-radius: 12px; 
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); 
-    gap: 15px; 
-    text-align: center;
-    transition: background-color 0.3s, box-shadow 0.3s;
-}
-
-.dark #auth-container {
-     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); 
-}
-
-#auth-container h1 {
-    color: var(--chat-header-bg); 
-    margin-bottom: 5px; 
-    font-size: 1.5rem;
-    font-weight: bold; 
-}
-
-#auth-container p:not(#user-id-display) {
-    color: var(--text-color);
-    opacity: 0.7;
-    margin-bottom: 10px;
-}
-
-/* ورودی‌ها */
-#auth-username, #auth-password {
-    padding: 12px 15px;
-    border-radius: 8px;
-    border: 1px solid var(--input-border);
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    font-size: 1rem;
-    text-align: right;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    width: 100%; 
-}
-
-#auth-username:focus, #auth-password:focus {
-    border-color: var(--chat-header-bg); 
-    box-shadow: 0 0 0 0.15rem rgba(84, 169, 235, 0.25); 
-    outline: none;
-}
-
-/* دکمه‌ها */
-#auth-container button {
-    padding: 12px;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-    border: none;
-    transition: background-color 0.3s, transform 0.1s;
-    width: 100%;
-}
-
-#login-button {
-    background-color: var(--chat-header-bg); 
-}
-
-#register-button {
-    background-color: #28a745; 
-}
-
-#auth-container button:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px); 
-}
-
-/* ================================================= */
-/* استایل ناحیه پیام‌ها و اسکرول بار */
-/* ================================================= */
-#messages {
-    background-color: var(--messages-bg);
-    transition: background-color 0.3s;
-}
-
-#messages::-webkit-scrollbar {
-    width: 8px;
-}
-#messages::-webkit-scrollbar-track {
-    background: var(--messages-bg); 
-}
-#messages::-webkit-scrollbar-thumb {
-    background: #94a3b8;
-    border-radius: 10px;
-}
-#messages::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
-}
-
-/* ================================================= */
-/* استایل حباب پیام (Telegram Style) */
-/* ================================================= */
-.message-bubble {
-    max-width: 85%;
-    word-wrap: break-word;
-    padding: 10px 14px;
-    margin-bottom: 12px; 
-    text-align: right; 
-    direction: rtl;
-    line-height: 1.5;
-    display: flex;
-    flex-direction: column;
-    transition: background-color 0.3s, color 0.3s;
-    position: relative; 
-    filter: drop-shadow(0 0 0.5px rgba(0,0,0,0.1)); 
-}
-
-/* پیام من */
-.message-mine .message-bubble {
-    background-color: var(--my-bubble-bg); 
-    color: white;
-    align-self: flex-start; 
-    border-radius: 14px 14px 0 14px; 
-}
-
-/* دم پیام من */
-.message-mine .message-bubble:after {
-    content: '';
-    position: absolute;
-    right: -8px; 
-    bottom: 0;
-    width: 0;
-    height: 0;
-    border: 10px solid transparent;
-    border-top-color: var(--my-bubble-bg);
-    border-right: 0;
-    border-bottom: 0;
-    filter: drop-shadow(0 0 0.5px rgba(0,0,0,0.1));
-}
-
-
-/* پیام دیگران */
-.message-other .message-bubble {
-    background-color: var(--other-bubble-bg); 
-    color: var(--other-text-color); 
-    align-self: flex-end; 
-    border-radius: 14px 14px 14px 0; 
-}
-
-/* دم پیام دیگران */
-.message-other .message-bubble:after {
-    content: '';
-    position: absolute;
-    left: -8px; 
-    bottom: 0;
-    width: 0;
-    height: 0;
-    border: 10px solid transparent;
-    border-top-color: var(--other-bubble-bg);
-    border-left: 0;
-    border-bottom: 0;
-    filter: drop-shadow(0 0 0.5px rgba(0,0,0,0.1));
-}
-
-.dark .message-mine .message-bubble:after {
-    border-top-color: var(--my-bubble-bg);
-}
-.dark .message-other .message-bubble:after {
-    border-top-color: var(--other-bubble-bg);
-}
-
-.message-sender {
-    font-weight: bold;
-    font-size: 0.85rem;
-    margin-bottom: 2px;
-}
-
-.message-mine .message-sender {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.message-other .message-sender {
-    color: #6c757d;
-}
-
-.dark .message-other .message-sender {
-    color: #ccc; 
-}
-
-/* ================================================= */
-/* استایل هدر چت */
-/* ================================================= */
-.chat-header {
-    display: flex;
-    justify-content: space-between; 
+    justify-content: center;
     align-items: center;
-    padding: 15px;
-    background-color: var(--chat-header-bg); 
-    color: white;
-    font-size: 1.2rem;
-    font-weight: bold;
+    padding: 0;
     margin: 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s;
+    background-color: #f0f2f5;
+    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    direction: rtl; 
 }
 
-.header-controls {
-    display: flex;
-    gap: 8px;
+.main-app-container {
+    width: 100%;
+    max-width: 420px;
+    height: 100vh;
+    background-color: white;
+    overflow: hidden;
+    position: relative;
 }
 
-#profile-toggle, #dark-mode-toggle {
-    background-color: transparent;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 0.9rem;
-    transition: background-color 0.3s, transform 0.1s;
-}
-
-#profile-toggle:hover, #dark-mode-toggle:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-#dark-mode-toggle {
-    font-size: 1.2rem; 
-    padding: 6px 8px;
-}
-
-/* ================================================= */
-/* استایل ناحیه ورودی پیام */
-/* ================================================= */
-#input-area {
-    background-color: var(--card-bg);
-    transition: background-color 0.3s;
-}
-
-#message-input {
-    background-color: var(--card-bg);
-    border-color: var(--input-border);
-    color: var(--text-color);
-    border-radius: 20px; 
-    border: 1px solid var(--input-border);
-    padding: 12px 18px; 
-}
-
-#message-input:focus {
-    border-color: var(--chat-header-bg);
-    box-shadow: none; 
-}
-
-#send-button {
-    background-color: var(--chat-header-bg);
-    padding: 12px 18px;
-    border-radius: 20px;
-    box-shadow: none; 
-}
-
-#send-button::before {
-    content: ' ارسال'; 
-}
-
-/* ================================================= */
-/* پنل پروفایل */
-/* ================================================= */
-#profile-panel {
+/* افکت گذار iOS */
+.screen-content {
     position: absolute;
     top: 0;
+    left: 0;
     right: 0;
-    width: 80%; 
-    max-width: 300px;
-    height: 100%;
-    background-color: var(--profile-bg);
-    box-shadow: -4px 0 15px rgba(0, 0, 0, 0.2);
-    z-index: 20;
-    transform: translateX(100%); 
-    transition: transform 0.3s ease-out;
-    border-radius: 0 12px 12px 0; 
+    bottom: 0;
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    background-color: white;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); 
+    transform: translateX(100%); 
+    z-index: 50; 
 }
 
-#profile-panel.open {
-    transform: translateX(0); 
+.active-screen {
+    transform: translateX(0) !important; 
+    z-index: 60;
 }
 
-.profile-close-btn {
-    background-color: transparent;
-    border: none;
-    font-size: 1.5rem;
-    align-self: flex-start;
-    cursor: pointer;
-    color: var(--text-color);
-    transition: opacity 0.2s;
+/* --- Liquid Glass (Glassmorphism) برای هدرها --- */
+.header, .chat-header {
+    background-color: rgba(247, 247, 247, 0.85); 
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px); 
+    
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 0.5px solid rgba(224, 224, 224, 0.7);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    color: #007aff;
+    font-size: 17px;
+    font-weight: 600;
 }
 
-.profile-info {
-    padding: 15px;
-    background-color: var(--card-bg);
-    border-radius: 8px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: background-color 0.3s;
+.back-btn, #profileIcon, #newChatIcon { cursor: pointer; color: #007aff; }
+.header h1 { font-size: 17px; font-weight: 700; color: black; margin: 0; }
+
+/* --- استایل آواتار --- */
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-left: 15px;
+    flex-shrink: 0;
+    background-color: #5856d6 !important; /* رنگ پیش‌فرض برای آواتار CSS-Only */
 }
 
-.profile-info span {
-    font-weight: bold;
-    color: var(--chat-header-bg);
-}
+/* --- لیست چت‌ها --- */
+.chat-list-scroll { overflow-y: auto; flex-grow: 1; }
+.chat-item { display: flex; align-items: center; padding: 10px 15px; cursor: pointer; position: relative; background-color: white; }
+.chat-item::after { content: ''; position: absolute; bottom: 0; left: 85px; right: 0; height: 0.5px; background-color: #e0e0e0; }
 
-#logout-switch-button {
-    background-color: #dc3545; 
+/* آیکون پیام خوانده نشده */
+.chat-item.unread .unread-badge {
+    opacity: 1;
+    background-color: #ff3b30;
     color: white;
-    padding: 12px;
+}
+.chat-item .unread-badge {
+    opacity: 0; /* در حالت عادی پنهان */
+    transition: opacity 0.3s;
+    font-size: 12px; font-weight: 600; padding: 2px 7px; border-radius: 12px; margin-right: 5px; min-width: 12px; text-align: center;
+}
+
+/* --- صفحه چت و حباب‌ها --- */
+.messages-area {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    background-color: #f5f5f5;
+}
+
+.chat-message {
+    margin-bottom: 8px;
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 18px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+    direction: rtl; 
+}
+
+.my-chat-message { align-self: flex-end; background-color: #007aff; color: white; }
+.other-chat-message { align-self: flex-start; background-color: white; color: black; border: 1px solid #e0e0e0; }
+
+/* --- استایل نام کاربری درون حباب پیام --- */
+.message-sender {
+    display: block; 
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 2px;
+    font-weight: 500;
+    text-align: left; 
+}
+
+.my-chat-message .message-sender { color: rgba(255, 255, 255, 0.8); }
+.other-chat-message .message-sender { color: #555; }
+
+/* --- صفحه ثبت نام/ورود (رفع مشکل ظاهری) --- */
+.auth-screen {
+    transform: translateX(0); 
+    background-color: #f7f7f7;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-box {
+    padding: 25px;
+    width: 80%;
+    max-width: 300px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    box-sizing: border-box; 
+}
+.auth-box input,
+.auth-box button {
+    width: 100%; 
+    box-sizing: border-box; 
+    margin-bottom: 10px;
+    padding: 10px;
     border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    border: none;
-    transition: background-color 0.3s, transform 0.1s;
-    margin-top: auto; 
+    border: 1px solid #ddd;
+    font-family: 'Vazirmatn';
+    font-size: 16px;
+    display: block; /* مهم برای جلوگیری از چسبیدن در یک خط */
 }
 
-#logout-switch-button:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+.auth-box #registerButton {
+    background-color: #007aff; 
+    color: white;
+    margin-top: 15px;
+}
+.auth-box #loginButton {
+    background-color: #f0f0f0; 
+    color: black;
 }
 
-/* واکنش‌گرایی موبایل */
-@media (max-width: 500px) {
-    #profile-panel {
-        width: 100%;
-        max-width: none;
+/* --- صفحه پروفایل --- */
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+}
+.logout-btn { margin-top: 30px; background-color: #ff3b30 !important; color: white !important; width: 200px !important; }
+
+/* --- تنظیمات دسکتاپ --- */
+@media (min-width: 768px) {
+    .main-app-container {
+        height: 90vh;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+        max-height: 800px;
     }
 }
